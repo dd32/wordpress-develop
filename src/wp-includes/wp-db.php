@@ -2504,12 +2504,24 @@ class wpdb {
 	 *
 	 * @since 0.71
 	 *
-	 * @param string|null $query Optional. SQL query. Defaults to null, use the result from the previous query.
-	 * @param int         $x     Optional. Column of value to return. Indexed from 0.
-	 * @param int         $y     Optional. Row of value to return. Indexed from 0.
+	 * @param string|null $query           Optional. SQL query. Defaults to null, use the result from the previous query.
+	 * @param array       $prepared_values Optional. Defaults to null. Used to pass parameters for prepared queries.
+	 * @param int         $x               Optional. Column of value to return. Indexed from 0.
+	 * @param int         $y               Optional. Row of value to return. Indexed from 0.
 	 * @return string|null Database query result (as string), or null on failure
 	 */
-	public function get_var( $query = null, $x = 0, $y = 0 ) {
+	public function get_var( $query = null, $prepared_values = null, $x = 0, $y = 0 ) {
+		// Back compat
+		if ( ! is_array( $prepared_values ) && func_num_args() > 1 ) {
+			// Order is important, must be read RTL
+			if ( func_num_args() > 2 ) {
+				$y = func_get_arg( 2 );
+			}
+			$x = func_get_arg( 1 );
+			$prepared_values = null;
+			var_dump( compact( 'prepared_values', 'x', 'y' ) );
+		}
+
 		$this->func_call = "\$db->get_var(\"$query\", $x, $y)";
 
 		if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
@@ -2517,7 +2529,7 @@ class wpdb {
 		}
 
 		if ( $query ) {
-			$this->query( $query );
+			$this->query( $query, $prepared_values );
 		}
 
 		// Extract var out of cached results based x,y vals
