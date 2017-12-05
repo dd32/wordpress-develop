@@ -2547,13 +2547,24 @@ class wpdb {
 	 *
 	 * @since 0.71
 	 *
-	 * @param string|null $query  SQL query.
-	 * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
-	 *                            an stdClass object, an associative array, or a numeric array, respectively. Default OBJECT.
-	 * @param int         $y      Optional. Row to return. Indexed from 0.
+	 * @param string|null $query           SQL query.
+	 * @param array       $prepared_values Optional. Defaults to null. Used to pass parameters for prepared queries.
+	 * @param string      $output          Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
+	 *                                     an stdClass object, an associative array, or a numeric array, respectively. Default OBJECT.
+	 * @param int         $y               Optional. Row to return. Indexed from 0.
 	 * @return array|object|null|void Database query result in format specified by $output or null on failure
 	 */
-	public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
+	public function get_row( $query = null, $prepared_values = null, $output = OBJECT, $y = 0 ) {
+		// Back compat
+		if ( ! is_array( $prepared_values ) && func_num_args() > 1 ) {
+			// Order is important, must be read RTL
+			if ( func_num_args() > 2 ) {
+				$y = func_get_arg( 2 );
+			}
+			$output = func_get_arg( 1 );
+			$prepared_values = null;
+		}
+
 		$this->func_call = "\$db->get_row(\"$query\",$output,$y)";
 
 		if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
@@ -2561,7 +2572,7 @@ class wpdb {
 		}
 
 		if ( $query ) {
-			$this->query( $query );
+			$this->query( $query, $prepared_values );
 		} else {
 			return null;
 		}
@@ -2593,17 +2604,26 @@ class wpdb {
 	 *
 	 * @since 0.71
 	 *
-	 * @param string|null $query Optional. SQL query. Defaults to previous query.
-	 * @param int         $x     Optional. Column to return. Indexed from 0.
+	 * @param string|null $query           Optional. SQL query. Defaults to previous query.
+	 * @param array       $prepared_values Optional. Defaults to null. Used to pass parameters for prepared queries.
+	 * @param int         $x               Optional. Column to return. Indexed from 0.
 	 * @return array Database query result. Array indexed from 0 by SQL result row number.
 	 */
-	public function get_col( $query = null, $x = 0 ) {
+	public function get_col( $query = null, $prepared_values = null, $x = 0 ) {
+		// Back compat
+		if ( ! is_array( $prepared_values ) && func_num_args() > 1 ) {
+			$x = func_get_arg( 1 );
+			$prepared_values = null;
+		}
+
+		$this->func_call = "\$db->get_row(\"$query\",$x)";
+
 		if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
 			$this->check_current_query = false;
 		}
 
 		if ( $query ) {
-			$this->query( $query );
+			$this->query( $query, $prepared_values );
 		}
 
 		$new_array = array();
@@ -2622,14 +2642,21 @@ class wpdb {
 	 * @since 0.71
 	 *
 	 * @param string $query  SQL query.
-	 * @param string $output Optional. Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
-	 *                       With one of the first three, return an array of rows indexed from 0 by SQL result row number.
-	 *                       Each row is an associative array (column => value, ...), a numerically indexed array (0 => value, ...), or an object. ( ->column = value ), respectively.
-	 *                       With OBJECT_K, return an associative array of row objects keyed by the value of each row's first column's value.
-	 *                       Duplicate keys are discarded.
+	 * @param array  $prepared_values Optional. Defaults to null. Used to pass parameters for prepared queries.
+	 * @param string $output          Optional. Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
+	 *                                With one of the first three, return an array of rows indexed from 0 by SQL result row number.
+	 *                                Each row is an associative array (column => value, ...), a numerically indexed array (0 => value, ...), or an object. ( ->column = value ), respectively.
+	 *                                With OBJECT_K, return an associative array of row objects keyed by the value of each row's first column's value.
+	 *                                Duplicate keys are discarded.
 	 * @return array|object|null Database query results
 	 */
-	public function get_results( $query = null, $output = OBJECT ) {
+	public function get_results( $query = null, $prepared_values = null, $output = OBJECT ) {
+		// Back compat
+		if ( ! is_array( $prepared_values ) && func_num_args() > 1 ) {
+			$output = func_get_arg( 1 );
+			$prepared_values = null;
+		}
+
 		$this->func_call = "\$db->get_results(\"$query\", $output)";
 
 		if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
@@ -2637,7 +2664,7 @@ class wpdb {
 		}
 
 		if ( $query ) {
-			$this->query( $query );
+			$this->query( $query, $prepared_values );
 		} else {
 			return null;
 		}
