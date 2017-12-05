@@ -1398,7 +1398,11 @@ class wpdb {
 
 		if ( ! $str ) {
 			if ( $this->use_mysqli ) {
-				$str = mysqli_error( $this->dbh );
+				if ( $this->result instanceof mysqli_stmt && ! empty( $this->result->error ) ) {
+					$str = $this->result->error;
+				} else {
+					$str = mysqli_error( $this->dbh );
+				}
 			} else {
 				$str = mysql_error( $this->dbh );
 			}
@@ -1827,7 +1831,7 @@ class wpdb {
 	 * @param string $query Database query
 	 * @return int|false Number of rows affected/selected or false on error
 	 */
-	public function query( $query ) {
+	public function query( $query, $prepared_values = null ) {
 		if ( ! $this->ready ) {
 			$this->check_current_query = true;
 			return false;
@@ -1867,13 +1871,15 @@ class wpdb {
 		// Keep track of the last query for debug.
 		$this->last_query = $query;
 
-		$this->_do_query( $query );
+		$this->_do_query( $query, $prepared_values );
 
 		// MySQL server has gone away, try to reconnect.
 		$mysql_errno = 0;
 		if ( ! empty( $this->dbh ) ) {
 			if ( $this->use_mysqli ) {
-				if ( $this->dbh instanceof mysqli ) {
+				if ( $this->dbh instanceof mysqli && $this->result instanceof mysqli_stmt && ! empty( $this->result->errno ) ) {
+					$mysql_errno = $this->result->errno;
+				} elseif ( $this->dbh instanceof mysqli ) {
 					$mysql_errno = mysqli_errno( $this->dbh );
 				} else {
 					// $dbh is defined, but isn't a real connection.
@@ -1891,7 +1897,7 @@ class wpdb {
 
 		if ( empty( $this->dbh ) || 2006 == $mysql_errno ) {
 			if ( $this->check_connection() ) {
-				$this->_do_query( $query );
+				$this->_do_query( $query, $prepared_values );
 			} else {
 				$this->insert_id = 0;
 				return false;
@@ -1900,7 +1906,19 @@ class wpdb {
 
 		// If there is an error then take note of it.
 		if ( $this->use_mysqli ) {
-			if ( $this->dbh instanceof mysqli ) {
+			if ( $this->dbh instanceof mysqli && $this->result instanceof mysqli_stmt && ! empty( $this->result->errno ) ) {
+				$this->last_error = $this->result->error;
+
+				// Custom error for when the incorrect parameter count is passed.
+				if ( 2031 == $mysql_errno ) {
+					$this->last_error = sprintf(
+						/* translators: 1: number of placeholders, 2: number of arguments passed */
+						__( 'The query does not contain the correct number of placeholders (%1$d) for the number of arguments passed (%2$d).' ),
+						$this->result->param_count,
+						count( $prepared_values )
+					);
+				}
+			} elseif ( $this->dbh instanceof mysqli ) {
 				$this->last_error = mysqli_error( $this->dbh );
 			} else {
 				$this->last_error = __( 'Unable to retrieve the error message from MySQL' );
@@ -1943,7 +1961,26 @@ class wpdb {
 			$return_val = $this->rows_affected;
 		} else {
 			$num_rows = 0;
-			if ( $this->use_mysqli && $this->result instanceof mysqli_result ) {
+
+			if ( $this->use_mysqli && $this->result instanceof mysqli_stmt ) {
+				$tmp_db_row = array();
+				$mysqli_stmt_bind_result_args = array( $this->result );
+
+				foreach ( mysqli_fetch_fields( mysqli_stmt_result_metadata( $this->result ) ) as $field ) {
+					$tmp_db_row[ $field->name ] = null;
+					$mysqli_stmt_bind_result_args[] = &$tmp_db_row[ $field->name ];
+				}
+				call_user_func_array( 'mysqli_stmt_bind_result', $mysqli_stmt_bind_result_args );
+
+				while ( mysqli_stmt_fetch( $this->result ) ) {
+					$row = new stdClass();
+					foreach ( $tmp_db_row as $field => $value ) {
+						$row->{$field} = $value;
+					}
+					$this->last_result[ $num_rows ] = $row;
+					$num_rows++;
+				}
+			} elseif ( $this->use_mysqli && $this->result instanceof mysqli_result ) {
 				while ( $row = mysqli_fetch_object( $this->result ) ) {
 					$this->last_result[ $num_rows ] = $row;
 					$num_rows++;
@@ -1973,13 +2010,58 @@ class wpdb {
 	 *
 	 * @param string $query The query to run.
 	 */
-	private function _do_query( $query ) {
+	private function _do_query( $query, $prepared_values = null ) {
 		if ( defined( 'SAVEQUERIES' ) && SAVEQUERIES ) {
 			$this->timer_start();
 		}
 
-		if ( ! empty( $this->dbh ) && $this->use_mysqli ) {
+		if ( ! empty( $this->dbh ) && $this->use_mysqli && ! is_null( $prepared_values ) ) {
+			$query_prepared_value_types = '';
+			$query_prepared_values = array();
+			$valid_data_types = array( 's', 'd', 'i' );
+			foreach ( $prepared_values as $v ) {
+				if ( ! is_array( $v ) || ! isset( $v['type'] ) ) {
+					$v = array( 'type' => 's', 'value' => $v );
+				}
+
+				if ( in_array( $v['type'], $valid_data_types, true ) ) {
+					$query_prepared_value_types .= $v['type'];
+				} else {
+					$query_prepared_value_types .= 's';
+				}
+
+				$query_prepared_values[] = $v['value'];
+			}
+
+			$prepared_query = mysqli_prepare( $this->dbh, $query );
+			if ( $prepared_query && empty( $prepared_query->errno ) ) {
+				$mysqli_stmt_bind_param_args = array(
+					$prepared_query,
+					$query_prepared_value_types
+					// ... args by ref:
+				);
+				foreach ( $query_prepared_values as $i => $v ) {
+					$mysqli_stmt_bind_param_args[] = & $query_prepared_values[$i];
+				}
+
+				call_user_func_array( 'mysqli_stmt_bind_param', $mysqli_stmt_bind_param_args );
+
+				mysqli_stmt_execute( $prepared_query );
+			}
+
+			$this->result = $prepared_query;
+
+		} elseif ( ! empty( $this->dbh ) && $this->use_mysqli ) {
 			$this->result = mysqli_query( $this->dbh, $query );
+
+		} elseif ( ! empty( $this->dbh ) && ! is_null( $prepared_query_data ) ) {
+			// TODO: Oh noes, it's a prepared query which we don't support!
+			//       form it into a real query before passing to mysql_query() using $this->prepare() or something?
+			//       This will likely require an actual SQL parser rather than regular expressions.
+
+			throw new Exception( "Native Prepared queries Not implemented for MySQL ext." );
+
+			$this->result = false;
 		} elseif ( ! empty( $this->dbh ) ) {
 			$this->result = mysql_query( $query, $this->dbh );
 		}
