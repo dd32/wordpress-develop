@@ -2519,7 +2519,6 @@ class wpdb {
 			}
 			$x = func_get_arg( 1 );
 			$prepared_values = null;
-			var_dump( compact( 'prepared_values', 'x', 'y' ) );
 		}
 
 		$this->func_call = "\$db->get_var(\"$query\", $x, $y)";
