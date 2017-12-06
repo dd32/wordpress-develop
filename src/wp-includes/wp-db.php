@@ -2633,7 +2633,7 @@ class wpdb {
 			$prepared_values = null;
 		}
 
-		$this->func_call = "\$db->get_row(\"$query\",$x)";
+		$this->func_call = "\$db->get_col(\"$query\",$x)";
 
 		if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
 			$this->check_current_query = false;
