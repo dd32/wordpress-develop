@@ -554,6 +554,18 @@ class wpdb {
 	);
 
 	/**
+	 * MySQLi native placeholder values mapped to printf style placeholders.
+	 *
+	 * @since x.y.0
+	 * @var array
+	 */
+	protected $valid_mysqli_prepare_placeholders = array(
+		's' => '%s',
+		'i' => '%d',
+		'd' => '%f',
+	);
+
+	/**
 	 * Whether to use mysqli over mysql.
 	 *
 	 * @since 3.9.0
@@ -2018,14 +2030,19 @@ class wpdb {
 		if ( ! empty( $this->dbh ) && $this->use_mysqli && ! is_null( $prepared_values ) ) {
 			$query_prepared_value_types = '';
 			$query_prepared_values = array();
-			$valid_data_types = array( 's', 'd', 'i' );
+
 			foreach ( $prepared_values as $v ) {
 				if ( ! is_array( $v ) || ! isset( $v['type'] ) ) {
 					$v = array( 'type' => 's', 'value' => $v );
 				}
 
-				if ( in_array( $v['type'], $valid_data_types, true ) ) {
+				if ( isset( $this->valid_mysqli_prepare_placeholders[ $v['type'] ] ) ) {
 					$query_prepared_value_types .= $v['type'];
+
+				} elseif ( $type = array_search( strtolower( $v['type'] ), $this->valid_mysqli_prepare_placeholders, true ) ) {
+					// Support for %s, %d, %f
+					$query_prepared_value_types .= $type;
+
 				} else {
 					$query_prepared_value_types .= 's';
 				}
