@@ -95,20 +95,6 @@ class Tests_DB extends WP_UnitTestCase {
 			$this->markTestSkipped( 'No European languages available for testing' );
 		}
 
-		// Try an update query
-		$wpdb->suppress_errors( true );
-		$wpdb->update(
-			'test_table',
-			array( 'float_column' => 0.7 ),
-			array( 'meta_id' => 5 ),
-			array( '%f' ),
-			array( '%d' )
-		);
-		$wpdb->suppress_errors( false );
-
-		// Ensure the float isn't 0,700
-		$this->assertContains( '0.700', array_pop( $this->_queries ) );
-
 		// Try a prepare
 		$sql = $wpdb->prepare( 'UPDATE test_table SET float_column = %f AND meta_id = %d', 0.7, 5 );
 		$this->assertContains( '0.700', $sql );
@@ -602,13 +588,13 @@ class Tests_DB extends WP_UnitTestCase {
 		$suppress = $wpdb->suppress_errors( true );
 		$wpdb->update( $wpdb->posts, array( 'post_name' => 'burrito' ), array() );
 
-		$expected1 = "UPDATE `{$wpdb->posts}` SET `post_name` = 'burrito' WHERE ";
+		$expected1 = "UPDATE `{$wpdb->posts}` SET `post_name` = ? WHERE ";
 		$this->assertNotEmpty( $wpdb->last_error );
 		$this->assertEquals( $expected1, $wpdb->last_query );
 
 		$wpdb->update( $wpdb->posts, array( 'post_name' => 'burrito' ), array( 'post_status' => 'taco' ) );
 
-		$expected2 = "UPDATE `{$wpdb->posts}` SET `post_name` = 'burrito' WHERE `post_status` = 'taco'";
+		$expected2 = "UPDATE `{$wpdb->posts}` SET `post_name` = ? WHERE `post_status` = ?";
 		$this->assertEmpty( $wpdb->last_error );
 		$this->assertEquals( $expected2, $wpdb->last_query );
 		$wpdb->suppress_errors( $suppress );
