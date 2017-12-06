@@ -2078,14 +2078,12 @@ class wpdb {
 		} elseif ( ! empty( $this->dbh ) && $this->use_mysqli ) {
 			$this->result = mysqli_query( $this->dbh, $query );
 
-		} elseif ( ! empty( $this->dbh ) && ! is_null( $prepared_query_data ) ) {
-			// TODO: Oh noes, it's a prepared query which we don't support!
-			//       form it into a real query before passing to mysql_query() using $this->prepare() or something?
-			//       This will likely require an actual SQL parser rather than regular expressions.
+		} elseif ( ! empty( $this->dbh ) && ! is_null( $prepared_values ) ) {
+			$downgraded_query = $this->insecure_downgrade_native_prepare_to_sprintf( $query, $prepared_values );
+			$query = $this->prepare( $downgraded_query['query'], $downgraded_query['values'] );
 
-			throw new Exception( "Native Prepared queries Not implemented for MySQL ext." );
+			$this->result = mysql_query( $query, $this->dbh );
 
-			$this->result = false;
 		} elseif ( ! empty( $this->dbh ) ) {
 			$this->result = mysql_query( $query, $this->dbh );
 		}
@@ -2424,6 +2422,77 @@ class wpdb {
 
 		$this->check_current_query = false;
 		return $this->query( $sql, $values );
+	}
+
+	/**
+	 * Convert a MySQLi prepared query into a printf() style query for use with $wpdb->prepare().
+	 *
+	 * This should be considered insecure, the SQL is not parsed, it may insert placeholders where not expected.
+	 * This should not be relied upon, but is designed to be a backup in the event that MySQLi prepared queries are unavailable.
+	 *
+	 * @since x.y.z
+	 * @param string $sql   The SQL to convert.
+	 * @param array  $datas The data that is to be used with prepare().
+	 * @return string|WP_Error SQL string on success, WP_Error on failure.
+	 */
+	protected function insecure_downgrade_native_prepare_to_sprintf( $sql, $datas ) { // TODO: Better name :)
+		$param_count = count( $datas );
+
+		// Extremely naive method to determine intended placeholders.
+		// This is inherantly insecure as it may match within a non-value location such as a field or within a hard-coded data blob.
+		preg_match_all( '/[?]/', $sql, $matches, PREG_OFFSET_CAPTURE );
+
+		$placeholders_found = count( $matches[0] );
+
+		// This is the only safety mechanism included, that the count matches.
+		if ( $param_count !== $placeholders_found ) {
+			return new WP_Error(
+				'incorrect_parameter_count',
+				sprintf(
+					/* translators: 1: number of placeholders, 2: number of arguments passed */
+					__( 'The query does not contain the correct number of placeholders (%1$d) for the number of arguments passed (%2$d).' ),
+					$placeholders_found,
+					$param_count
+				)
+			);
+		}
+
+		// Prevent the query from already having a %s in it.
+		if ( preg_match( '/(?<!%)%/', $sql ) ) {
+			return new WP_Error(
+				'invalid_query',
+				__( 'It appears that the provided query contains printf-style placeholders, this makes the query non-supportable.' )
+			);
+		}
+
+		// Keep track of the parameters encountered, we need the raw 'value' keys.
+		$params = array();
+		// As we add placeholders, the captured offsets will change.
+		$offset = 0;
+
+		// Rebuild the SQL to use printf-style placeholders rather than ?
+		foreach ( $matches[0] as $i => $m ) {
+			$sql_offset = $m[1] + $offset++;
+
+			$placeholder = '%s';
+			if ( is_array( $datas[ $i ] ) && isset( $datas[ $i ]['type'] ) ) {
+				if ( isset( $this->valid_mysqli_prepare_placeholders[ $datas[ $i ]['type'] ] ) ) {
+					// Support for s, i, d
+					$placeholder = $this->valid_mysqli_prepare_placeholders[ $datas[ $i ]['type'] ];
+				} elseif ( array_search( $datas[ $i ]['type'], $this->valid_mysqli_prepare_placeholders, true ) ) {
+					// Support for %s, %d, %f
+					$placeholder = $datas[ $i ]['type'];
+				}
+			}
+
+			$sql      = substr( $sql, 0, $sql_offset ) . $placeholder . substr( $sql, $sql_offset + 1 );
+			$params[] = isset( $datas[ $i ]['value'] ) ? $datas[ $i ]['value'] : $datas[ $i ];
+		}
+
+		return array(
+			'query'  => $sql,
+			'values' => $params,
+		);
 	}
 
 	/**
