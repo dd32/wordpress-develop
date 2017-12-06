@@ -2028,30 +2028,30 @@ class wpdb {
 		}
 
 		if ( ! empty( $this->dbh ) && $this->use_mysqli && ! is_null( $prepared_values ) ) {
-			$query_prepared_value_types = '';
-			$query_prepared_values = array();
-
-			foreach ( $prepared_values as $v ) {
-				if ( ! is_array( $v ) || ! isset( $v['type'] ) ) {
-					$v = array( 'type' => 's', 'value' => $v );
-				}
-
-				if ( isset( $this->valid_mysqli_prepare_placeholders[ $v['type'] ] ) ) {
-					$query_prepared_value_types .= $v['type'];
-
-				} elseif ( $type = array_search( strtolower( $v['type'] ), $this->valid_mysqli_prepare_placeholders, true ) ) {
-					// Support for %s, %d, %f
-					$query_prepared_value_types .= $type;
-
-				} else {
-					$query_prepared_value_types .= 's';
-				}
-
-				$query_prepared_values[] = $v['value'];
-			}
-
 			$prepared_query = mysqli_prepare( $this->dbh, $query );
 			if ( $prepared_query && empty( $prepared_query->errno ) ) {
+				$query_prepared_value_types = '';
+				$query_prepared_values = array();
+
+				foreach ( $prepared_values as $v ) {
+					if ( ! is_array( $v ) || ! isset( $v['type'] ) ) {
+						$v = array( 'type' => 's', 'value' => $v );
+					}
+
+					if ( isset( $this->valid_mysqli_prepare_placeholders[ $v['type'] ] ) ) {
+						$query_prepared_value_types .= $v['type'];
+
+					} elseif ( $type = array_search( strtolower( $v['type'] ), $this->valid_mysqli_prepare_placeholders, true ) ) {
+						// Support for %s, %d, %f
+						$query_prepared_value_types .= $type;
+
+					} else {
+						$query_prepared_value_types .= 's';
+					}
+
+					$query_prepared_values[] = $v['value'];
+				}
+
 				$mysqli_stmt_bind_param_args = array(
 					$prepared_query,
 					$query_prepared_value_types
