@@ -2237,8 +2237,16 @@ class wpdb {
 				continue;
 			}
 
-			$formats[] = $value['format'];
-			$values[]  = $value['value'];
+			$native_format = array_search( strtolower( $value['format'] ), $this->valid_mysqli_prepare_placeholders, true );
+			if ( ! $native_format ) {
+				$native_format = 's';
+			}
+
+			$formats[] = '?';
+			$values[]  = array(
+				'value' => $value['value'],
+				'type'  => $native_format
+			);
 		}
 
 		$fields  = '`' . implode( '`, `', array_keys( $data ) ) . '`';
@@ -2246,8 +2254,12 @@ class wpdb {
 
 		$sql = "$type INTO `$table` ($fields) VALUES ($formats)";
 
+		if ( empty( $values ) ) {
+			$values = null;
+		}
+
 		$this->check_current_query = false;
-		return $this->query( $this->prepare( $sql, $values ) );
+		return $this->query( $sql, $values );
 	}
 
 	/**
@@ -2301,17 +2313,34 @@ class wpdb {
 				continue;
 			}
 
-			$fields[] = "`$field` = " . $value['format'];
-			$values[] = $value['value'];
+			$native_format = array_search( strtolower( $value['format'] ), $this->valid_mysqli_prepare_placeholders, true );
+			if ( ! $native_format ) {
+				$native_format = 's';
+			}
+
+			$fields[] = "`$field` = ?";
+			$values[] = array(
+				'value' => $value['value'],
+				'type' => $native_format
+			);
 		}
+
 		foreach ( $where as $field => $value ) {
 			if ( is_null( $value['value'] ) ) {
 				$conditions[] = "`$field` IS NULL";
 				continue;
 			}
 
-			$conditions[] = "`$field` = " . $value['format'];
-			$values[]     = $value['value'];
+			$native_format = array_search( strtolower( $value['format'] ), $this->valid_mysqli_prepare_placeholders, true );
+			if ( ! $native_format ) {
+				$native_format = 's';
+			}
+
+			$conditions[] = "`$field` = ?";
+			$values[]     = array(
+				'value' => $value['value'],
+				'type'  => $native_format
+			);
 		}
 
 		$fields     = implode( ', ', $fields );
@@ -2319,8 +2348,12 @@ class wpdb {
 
 		$sql = "UPDATE `$table` SET $fields WHERE $conditions";
 
+		if ( empty( $values ) ) {
+			$values = null;
+		}
+
 		$this->check_current_query = false;
-		return $this->query( $this->prepare( $sql, $values ) );
+		return $this->query( $sql, $values );
 	}
 
 	/**
@@ -2362,16 +2395,28 @@ class wpdb {
 				continue;
 			}
 
-			$conditions[] = "`$field` = " . $value['format'];
-			$values[]     = $value['value'];
+			$native_format = array_search( strtolower( $value['format'] ), $this->valid_mysqli_prepare_placeholders, true );
+			if ( ! $native_format ) {
+				$native_format = 's';
+			}
+
+			$conditions[] = "`$field` = ?";
+			$values[]     = array(
+				'value' => $value['value'],
+				'type' => $native_format
+			);
 		}
 
 		$conditions = implode( ' AND ', $conditions );
 
 		$sql = "DELETE FROM `$table` WHERE $conditions";
 
+		if ( empty( $values ) ) {
+			$values = null;
+		}
+
 		$this->check_current_query = false;
-		return $this->query( $this->prepare( $sql, $values ) );
+		return $this->query( $sql, $values );
 	}
 
 	/**
