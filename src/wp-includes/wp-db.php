@@ -2080,9 +2080,13 @@ class wpdb {
 
 		} elseif ( ! empty( $this->dbh ) && ! is_null( $prepared_values ) ) {
 			$downgraded_query = $this->insecure_downgrade_native_prepare_to_sprintf( $query, $prepared_values );
-			$query = $this->prepare( $downgraded_query['query'], $downgraded_query['values'] );
-
-			$this->result = mysql_query( $query, $this->dbh );
+			if ( ! is_wp_error( $downgraded_query ) ) {
+				$this->result = false;
+				$this->print_error( $downgraded_query->get_error_message() );
+			} else {
+				$query = $this->prepare( $downgraded_query['query'], $downgraded_query['values'] );
+				$this->result = mysql_query( $query, $this->dbh );
+			}
 
 		} elseif ( ! empty( $this->dbh ) ) {
 			$this->result = mysql_query( $query, $this->dbh );
