@@ -1956,19 +1956,26 @@ class wpdb {
 		if ( preg_match( '/^\s*(create|alter|truncate|drop)\s/i', $query ) ) {
 			$return_val = $this->result;
 		} elseif ( preg_match( '/^\s*(insert|delete|update|replace)\s/i', $query ) ) {
-			if ( $this->use_mysqli ) {
+			// Take note of the rows affected
+			if ( $this->use_mysqli && $this->result instanceof mysqli_stmt ) {
+				$this->rows_affected = $this->result->affected_rows;
+			} elseif ( $this->use_mysqli ) {
 				$this->rows_affected = mysqli_affected_rows( $this->dbh );
 			} else {
 				$this->rows_affected = mysql_affected_rows( $this->dbh );
 			}
+
 			// Take note of the insert_id
 			if ( preg_match( '/^\s*(insert|replace)\s/i', $query ) ) {
-				if ( $this->use_mysqli ) {
+				if ( $this->use_mysqli && $this->result instanceof mysqli_stmt ) {
+					$this->insert_id = $this->result->insert_id;
+				} elseif ( $this->use_mysqli ) {
 					$this->insert_id = mysqli_insert_id( $this->dbh );
 				} else {
 					$this->insert_id = mysql_insert_id( $this->dbh );
 				}
 			}
+
 			// Return number of rows affected
 			$return_val = $this->rows_affected;
 		} else {
