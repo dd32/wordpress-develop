@@ -76,15 +76,15 @@ function wp_register_tinymce_scripts( &$scripts, $force_uncompressed = false ) {
 function wp_default_packages_vendor( &$scripts ) {
 	$dev_suffix = wp_scripts_get_suffix( 'dev' );
 
-	$scripts->add( 'react', "/wp-includes/js/dist/vendor/react.js", array(), false, '16.5.2' );
-	$scripts->add( 'react-dom', "/wp-includes/js/dist/vendor/react-dom.js", array( 'react' ), false, '16.5.2' );
-	$scripts->add( 'moment', "/wp-includes/js/dist/vendor/moment.js", array(), false, '2.22.2' );
-	$scripts->add( 'lodash', "/wp-includes/js/dist/vendor/lodash.js", array(), false, '4.17.11' );
-	$scripts->add( 'wp-polyfill-fetch', "/wp-includes/js/dist/vendor/wp-polyfill-fetch.js", array(), false, 1 );
-	$scripts->add( 'wp-polyfill-formdata', "/wp-includes/js/dist/vendor/wp-polyfill-formdata.js", array(), false, 1 );
-	$scripts->add( 'wp-polyfill-node-contains', "/wp-includes/js/dist/vendor/wp-polyfill-node-contains.js", array(), false, 1 );
-	$scripts->add( 'wp-polyfill-element-closest', "/wp-includes/js/dist/vendor/wp-polyfill-element-closest.js", array(), false, 1 );
-	$scripts->add( 'wp-polyfill', "/wp-includes/js/dist/vendor/wp-polyfill.js", array(), false, 1 );
+	$scripts->add( 'react', "/wp-includes/js/dist/vendor/react$dev_suffix.js", array(), false, '16.5.2' );
+	$scripts->add( 'react-dom', "/wp-includes/js/dist/vendor/react-dom$dev_suffix.js", array( 'react' ), false, '16.5.2' );
+	$scripts->add( 'moment', "/wp-includes/js/dist/vendor/moment$dev_suffix.js", array(), false, '2.22.2' );
+	$scripts->add( 'lodash', "/wp-includes/js/dist/vendor/lodash$dev_suffix.js", array(), false, '4.17.11' );
+	$scripts->add( 'wp-polyfill-fetch', "/wp-includes/js/dist/vendor/wp-polyfill-fetch$dev_suffix.js", array(), false, 1 );
+	$scripts->add( 'wp-polyfill-formdata', "/wp-includes/js/dist/vendor/wp-polyfill-formdata$dev_suffix.js", array(), false, 1 );
+	$scripts->add( 'wp-polyfill-node-contains', "/wp-includes/js/dist/vendor/wp-polyfill-node-contains$dev_suffix.js", array(), false, 1 );
+	$scripts->add( 'wp-polyfill-element-closest', "/wp-includes/js/dist/vendor/wp-polyfill-element-closest$dev_suffix.js", array(), false, 1 );
+	$scripts->add( 'wp-polyfill', "/wp-includes/js/dist/vendor/wp-polyfill$dev_suffix.js", array(), false, 1 );
 
 	$scripts->add( 'wp-polyfill', null, array( 'wp-polyfill' ) );
 	did_action( 'init' ) && $scripts->add_data(
