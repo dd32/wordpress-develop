@@ -1127,7 +1127,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 			sprintf(
 				__( 'The authenticity of %1$s could not be verified as signature verification is unavailable on this system.' ).
 				'<span class="code">' . $filename_for_errors . '</span>'
-			)
+			),
 			( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ? 'sodium_crypto_sign_verify_detached' : 'hex2bin' )
 		);
 	}
