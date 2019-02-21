@@ -965,12 +965,14 @@ function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
  * Please note that the calling function must unlink() the file.
  *
  * @since 2.5.0
+ * @since 5.2.0 Signature Verification with SoftFail was added.
  *
  * @param string $url  The URL of the file to download.
  * @param int $timeout The timeout for the request to download the file. Default 300 seconds.
+ * @param bool $signature_softfail Whether to allow Signature Verification to softfail.
  * @return string|WP_Error Filename on success, WP_Error on failure.
  */
-function download_url( $url, $timeout = 300 ) {
+function download_url( $url, $timeout = 300, $signature_softfail = true ) {
 	//WARNING: The file is not automatically deleted, The script must unlink() the file.
 	if ( ! $url ) {
 		return new WP_Error( 'http_no_url', __( 'Invalid URL Provided.' ) );
@@ -1034,6 +1036,31 @@ function download_url( $url, $timeout = 300 ) {
 		}
 	}
 
+	$signature_header = wp_remote_retrieve_header( $response, 'x-content-signature' );
+	$signature_verification = verify_file_signature( $tmpfname, $signature_header, $url );
+	if ( is_wp_error( $signature_verification ) ) {
+		if (
+			/**
+			 * Filters whether Signature Verification failures should be allowed to soft fail.
+			 *
+			 * WARNING: This may be removed from a future release.
+			 *
+			 * @since 5.2.0
+			 *
+			 * @param bool  $signature_softfail If a softfail is allowed.
+			 * @param string $url               The url being accessed.
+			 */
+			apply_filters( 'wp_signature_softfail', $signature_softfail, $url )
+		) {
+			$signature_verification->add_data( $tmpfname, 'softfail-filename' );
+		} else {
+			// Hard-fail.
+			unlink( $tmpfname );
+		}
+
+		return $signature_verification;
+	}
+
 	return $tmpfname;
 }
 
@@ -1064,6 +1091,135 @@ function verify_file_md5( $filename, $expected_md5 ) {
 	}
 
 	return new WP_Error( 'md5_mismatch', sprintf( __( 'The checksum of the file (%1$s) does not match the expected checksum value (%2$s).' ), bin2hex( $file_md5 ), bin2hex( $expected_raw_md5 ) ) );
+}
+
+/**
+ * Verifies the contents of a file against it's ED25519 signature.
+ *
+ * @since 5.2.0
+ *
+ * @param string $filename   The file to validate.
+ * @param array  $signatures A Signature provided for the file.
+ * @param string $url        The URL the file was sourced from.
+ *
+ * @return bool|WP_Error true on success, false if verificaiton not attempted, and WP_Error describing an error condition.
+ */
+function verify_file_signature( $filename, $signatures, $url = false ) {
+	/**
+	 * Filters the list of hosts which should have Signature Verification attempted on.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param array List of hostnames.
+	 */
+	$signed_hostnames = apply_filters( 'wp_signature_hosts', array( 'wordpress.org', 'downloads.wordpress.org', 's.w.org' ) );
+	$hostname = parse_url( $url, PHP_URL_HOST );
+	if ( ! in_array( $hostname, $signed_hostnames, true ) ) {
+		return false;
+	}
+
+	$filename_for_errors = $url ? basename( parse_url( $url, PHP_URL_PATH ) ) : basename( $filename );
+
+	// Check we can process signatures.
+	if ( ! function_exists( 'sodium_crypto_sign_verify_detached' ) || ! function_exists( 'hex2bin' ) ) {
+		return new WP_Error(
+			'signature_verification_unsupported',
+			sprintf(
+				__( 'The authenticity of %1$s could not be verified as signature verification is unavailable on this system.' ).
+				'<span class="code">' . $filename_for_errors . '</span>'
+			)
+			( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ? 'sodium_crypto_sign_verify_detached' : 'hex2bin' )
+		);
+	}
+
+	// If a signature was not provided, but the URL for the file was, attempt suffixing `.sig` to the filename.
+	if ( ! $signatures && $url ) {
+		// Retrieve signatures from a file if the header wasn't included.
+		// WordPress.org stores signatures at $package_url.sig
+		$signature_request = wp_safe_remote_get( $url . '.sig' );
+		if ( ! is_wp_error( $signature_request ) && 200 === wp_remote_retrieve_response_code( $signature_request ) ) {
+			$signatures = explode( "\n", wp_remote_retrieve_body( $signature_request ) );
+		}
+	}
+
+	if ( ! $signatures ) {
+		return new WP_Error(
+			'signature_verification_no_signature',
+			sprintf(
+				__( 'The authenticity of %1$s could not be verified as no signature was found.' ),
+				'<span class="code">' . $filename_for_errors . '</span>'
+			)
+		);
+	}
+
+	$trusted_keys = wp_trusted_keys();
+
+	$file_contents = file_get_contents( $filename );
+
+	mbstring_binary_safe_encoding();
+
+	foreach ( (array) $signatures as $signature ) {
+		$signature_raw = hex2bin( $signature );
+
+		// Ensure only valid-length signatures are considered.
+		if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) )  {
+			continue;
+		}
+
+		foreach ( (array) $trusted_keys as $key ) {
+			$key_raw = hex2bin( $key );
+
+			// Only pass valid public keys through.
+			if ( SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES !== strlen( $key_raw ) ) {
+				continue;
+			}
+
+			if ( sodium_crypto_sign_verify_detached( $signature_raw, $file_contents, $key_raw ) ) {
+				reset_mbstring_encoding();
+				return true;
+			}
+		}
+	}
+
+	reset_mbstring_encoding();
+
+	return new WP_Error(
+		'signature_verification_failed',
+		sprintf(
+			__( 'The authenticity of %1$s could not be verified.' ),
+			'<span class="code">' . $filename_for_errors . '</span>'
+		),
+		// Error data helpful for debugging:
+		array(
+			'url'        => $url,
+			'filename'   => $filename_for_errors,
+			'keys'       => $trusted_keys,
+			'signatures' => $signatures,
+			'md5'        => md5( $file_contents ),
+		)
+	);
+}
+
+/**
+ * Retrieve the list of signing keys trusted by WordPress.
+ *
+ * @since 5.2.0
+ *
+ * @return array List of hex-encoded Signing keys.s
+ */
+function wp_trusted_keys() {
+	$trusted_keys = array(
+		// TODO: Fill with WordPress.org keys x2.
+	);
+
+	/**
+	 * Filter the valid Signing keys used to verify the contents of files.
+	 *
+	 * @since 5.2
+	 *
+	 * @param array $trusted_keys The trusted keys that may sign packages.
+	 */
+	return apply_filters( 'wp_trusted_keys', $trusted_keys );
 }
 
 /**
