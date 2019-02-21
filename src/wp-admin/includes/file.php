@@ -1215,7 +1215,7 @@ function wp_trusted_keys() {
 	/**
 	 * Filter the valid Signing keys used to verify the contents of files.
 	 *
-	 * @since 5.2
+	 * @since 5.2.0
 	 *
 	 * @param array $trusted_keys The trusted keys that may sign packages.
 	 */
