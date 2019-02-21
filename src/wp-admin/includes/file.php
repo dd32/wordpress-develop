@@ -1036,7 +1036,7 @@ function download_url( $url, $timeout = 300, $signature_softfail = true ) {
 		}
 	}
 
-	$signature_header = wp_remote_retrieve_header( $response, 'x-content-signature' );
+	$signature_header       = wp_remote_retrieve_header( $response, 'x-content-signature' );
 	$signature_verification = verify_file_signature( $tmpfname, $signature_header, $url );
 	if ( is_wp_error( $signature_verification ) ) {
 		if (
@@ -1113,7 +1113,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 	 * @param array List of hostnames.
 	 */
 	$signed_hostnames = apply_filters( 'wp_signature_hosts', array( 'wordpress.org', 'downloads.wordpress.org', 's.w.org' ) );
-	$hostname = parse_url( $url, PHP_URL_HOST );
+	$hostname         = parse_url( $url, PHP_URL_HOST );
 	if ( ! in_array( $hostname, $signed_hostnames, true ) ) {
 		return false;
 	}
@@ -1125,7 +1125,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 		return new WP_Error(
 			'signature_verification_unsupported',
 			sprintf(
-				__( 'The authenticity of %1$s could not be verified as signature verification is unavailable on this system.' ).
+				__( 'The authenticity of %1$s could not be verified as signature verification is unavailable on this system.' ),
 				'<span class="code">' . $filename_for_errors . '</span>'
 			),
 			( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ? 'sodium_crypto_sign_verify_detached' : 'hex2bin' )
@@ -1162,7 +1162,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 		$signature_raw = hex2bin( $signature );
 
 		// Ensure only valid-length signatures are considered.
-		if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) )  {
+		if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) ) {
 			continue;
 		}
 
