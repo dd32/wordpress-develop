@@ -1125,6 +1125,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 		return new WP_Error(
 			'signature_verification_unsupported',
 			sprintf(
+				/* translators: 1: The filename of the package. */
 				__( 'The authenticity of %1$s could not be verified as signature verification is unavailable on this system.' ),
 				'<span class="code">' . $filename_for_errors . '</span>'
 			),
@@ -1146,6 +1147,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 		return new WP_Error(
 			'signature_verification_no_signature',
 			sprintf(
+				/* translators: 1: The filename of the package. */
 				__( 'The authenticity of %1$s could not be verified as no signature was found.' ),
 				'<span class="code">' . $filename_for_errors . '</span>'
 			)
@@ -1186,6 +1188,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 	return new WP_Error(
 		'signature_verification_failed',
 		sprintf(
+			/* translators: 1: The filename of the package. */
 			__( 'The authenticity of %1$s could not be verified.' ),
 			'<span class="code">' . $filename_for_errors . '</span>'
 		),
