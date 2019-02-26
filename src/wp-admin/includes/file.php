@@ -1121,7 +1121,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 	$filename_for_errors = $url ? basename( parse_url( $url, PHP_URL_PATH ) ) : basename( $filename );
 
 	// Check we can process signatures.
-	if ( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ) {
+	if ( ! function_exists( 'sodium_crypto_sign_verify_detached' ) || ! in_array( 'sha512', array_map( 'strtolower', hash_algos() ) ) ) {
 		return new WP_Error(
 			'signature_verification_unsupported',
 			sprintf(
@@ -1129,7 +1129,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 				__( 'The authenticity of %1$s could not be verified as signature verification is unavailable on this system.' ),
 				'<span class="code">' . $filename_for_errors . '</span>'
 			),
-			( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ? 'sodium_crypto_sign_verify_detached' : '' )
+			( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ? 'sodium_crypto_sign_verify_detached' : 'sha512' )
 		);
 	}
 
@@ -1155,8 +1155,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 	}
 
 	$trusted_keys = wp_trusted_keys();
-
-	$file_contents = file_get_contents( $filename );
+	$file_hash    = hash_file( 'sha512', $filename, true );
 
 	mbstring_binary_safe_encoding();
 
@@ -1176,7 +1175,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 				continue;
 			}
 
-			if ( sodium_crypto_sign_verify_detached( $signature_raw, $file_contents, $key_raw ) ) {
+			if ( sodium_crypto_sign_verify_detached( $signature_raw, $file_hash, $key_raw ) ) {
 				reset_mbstring_encoding();
 				return true;
 			}
