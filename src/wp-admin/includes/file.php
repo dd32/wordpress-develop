@@ -1197,7 +1197,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 			'filename'   => $filename_for_errors,
 			'keys'       => $trusted_keys,
 			'signatures' => $signatures,
-			'md5'        => md5( $file_contents ),
+			'hash'       => base64_encode( $file_hash ),
 		)
 	);
 }
