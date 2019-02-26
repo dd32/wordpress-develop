@@ -1207,7 +1207,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
  *
  * @since 5.2.0
  *
- * @return array List of hex-encoded Signing keys.s
+ * @return array List of hex-encoded Signing keys.
  */
 function wp_trusted_keys() {
 	$trusted_keys = array(
