@@ -1121,7 +1121,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 	$filename_for_errors = $url ? basename( parse_url( $url, PHP_URL_PATH ) ) : basename( $filename );
 
 	// Check we can process signatures.
-	if ( ! function_exists( 'sodium_crypto_sign_verify_detached' ) || ! function_exists( 'hex2bin' ) ) {
+	if ( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ) {
 		return new WP_Error(
 			'signature_verification_unsupported',
 			sprintf(
@@ -1129,7 +1129,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 				__( 'The authenticity of %1$s could not be verified as signature verification is unavailable on this system.' ),
 				'<span class="code">' . $filename_for_errors . '</span>'
 			),
-			( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ? 'sodium_crypto_sign_verify_detached' : 'hex2bin' )
+			( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ? 'sodium_crypto_sign_verify_detached' : '' )
 		);
 	}
 
@@ -1161,7 +1161,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 	mbstring_binary_safe_encoding();
 
 	foreach ( (array) $signatures as $signature ) {
-		$signature_raw = hex2bin( $signature );
+		$signature_raw = base64_decode( $signature );
 
 		// Ensure only valid-length signatures are considered.
 		if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) ) {
@@ -1169,7 +1169,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 		}
 
 		foreach ( (array) $trusted_keys as $key ) {
-			$key_raw = hex2bin( $key );
+			$key_raw = base64_decode( $key );
 
 			// Only pass valid public keys through.
 			if ( SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES !== strlen( $key_raw ) ) {
