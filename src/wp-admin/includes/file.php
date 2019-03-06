@@ -1094,7 +1094,7 @@ function verify_file_md5( $filename, $expected_md5 ) {
 }
 
 /**
- * Verifies the contents of a file against it's ED25519 signature.
+ * Verifies the contents of a file against its ED25519 signature.
  *
  * @since 5.2.0
  *
@@ -1127,7 +1127,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 			sprintf(
 				/* translators: 1: The filename of the package. */
 				__( 'The authenticity of %1$s could not be verified as signature verification is unavailable on this system.' ),
-				'<span class="code">' . $filename_for_errors . '</span>'
+				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 			),
 			( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ? 'sodium_crypto_sign_verify_detached' : 'sha384' )
 		);
@@ -1149,7 +1149,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 			sprintf(
 				/* translators: 1: The filename of the package. */
 				__( 'The authenticity of %1$s could not be verified as no signature was found.' ),
-				'<span class="code">' . $filename_for_errors . '</span>'
+				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 			)
 		);
 	}
@@ -1189,7 +1189,7 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 		sprintf(
 			/* translators: 1: The filename of the package. */
 			__( 'The authenticity of %1$s could not be verified.' ),
-			'<span class="code">' . $filename_for_errors . '</span>'
+			'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 		),
 		// Error data helpful for debugging:
 		array(
