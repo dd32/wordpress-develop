@@ -967,9 +967,9 @@ function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
  * @since 2.5.0
  * @since 5.2.0 Signature Verification with SoftFail was added.
  *
- * @param string $url  The URL of the file to download.
- * @param int $timeout The timeout for the request to download the file. Default 300 seconds.
- * @param bool $signature_softfail Whether to allow Signature Verification to softfail.
+ * @param string $url                The URL of the file to download.
+ * @param int    $timeout            The timeout for the request to download the file. Default 300 seconds.
+ * @param bool   $signature_softfail Whether to allow Signature Verification to softfail. Default true.
  * @return string|WP_Error Filename on success, WP_Error on failure.
  */
 function download_url( $url, $timeout = 300, $signature_softfail = true ) {
@@ -1071,8 +1071,8 @@ function download_url( $url, $timeout = 300, $signature_softfail = true ) {
 			 *
 			 * @since 5.2.0
 			 *
-			 * @param bool  $signature_softfail If a softfail is allowed.
-			 * @param string $url               The url being accessed.
+			 * @param bool   $signature_softfail If a softfail is allowed.
+			 * @param string $url                The url being accessed.
 			 */
 			apply_filters( 'wp_signature_softfail', $signature_softfail, $url )
 		) {
