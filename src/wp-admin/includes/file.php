@@ -1036,8 +1036,32 @@ function download_url( $url, $timeout = 300, $signature_softfail = true ) {
 		}
 	}
 
-	$signature_header       = wp_remote_retrieve_header( $response, 'x-content-signature' );
-	$signature_verification = verify_file_signature( $tmpfname, $signature_header, $url );
+	/**
+	 * Filters the list of hosts which should have Signature Verification attempted on.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param array List of hostnames.
+	 */
+	$signed_hostnames = apply_filters( 'wp_signature_hosts', array( 'wordpress.org', 'downloads.wordpress.org', 's.w.org' ) );
+	$signature_verification = in_array( parse_url( $url, PHP_URL_HOST ), $signed_hostnames, true );
+
+	// Perform the valiation
+	if ( $signature_verification ) {
+		$signature = wp_remote_retrieve_header( $response, 'x-content-signature' );
+		if ( ! $signature ) {
+			// Retrieve signatures from a file if the header wasn't included.
+			// WordPress.org stores signatures at $package_url.sig
+			$signature_request = wp_safe_remote_get( $url . '.sig' );
+			if ( ! is_wp_error( $signature_request ) && 200 === wp_remote_retrieve_response_code( $signature_request ) ) {
+				$signatures = explode( "\n", wp_remote_retrieve_body( $signature_request ) );
+			}
+		}
+
+		// Perform the checks.
+		$signature_verification = verify_file_signature( $tmpfname, $signature, basename( parse_url( $url, PHP_URL_PATH ) )  );
+	}
+
 	if ( is_wp_error( $signature_verification ) ) {
 		if (
 			/**
@@ -1098,27 +1122,16 @@ function verify_file_md5( $filename, $expected_md5 ) {
  *
  * @since 5.2.0
  *
- * @param string $filename   The file to validate.
- * @param array  $signatures A Signature provided for the file.
- * @param string $url        The URL the file was sourced from.
+ * @param string       $filename            The file to validate.
+ * @param string|array $signatures          A Signature provided for the file.
+ * @param string       $filename_for_errors A friendly filename for errors. Optional.
  *
- * @return bool|WP_Error true on success, false if verificaiton not attempted, and WP_Error describing an error condition.
+ * @return bool|WP_Error true on success, false if verificaiton not attempted, or WP_Error describing an error condition.
  */
-function verify_file_signature( $filename, $signatures, $url = false ) {
-	/**
-	 * Filters the list of hosts which should have Signature Verification attempted on.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @param array List of hostnames.
-	 */
-	$signed_hostnames = apply_filters( 'wp_signature_hosts', array( 'wordpress.org', 'downloads.wordpress.org', 's.w.org' ) );
-	$hostname         = parse_url( $url, PHP_URL_HOST );
-	if ( ! in_array( $hostname, $signed_hostnames, true ) ) {
-		return false;
+function verify_file_signature( $filename, $signatures, $filename_for_errors = false ) {
+	if ( ! $filename_for_errors ) {
+		$filename_for_errors = wp_basename( $filename );
 	}
-
-	$filename_for_errors = $url ? basename( parse_url( $url, PHP_URL_PATH ) ) : basename( $filename );
 
 	// Check we can process signatures.
 	if ( ! function_exists( 'sodium_crypto_sign_verify_detached' ) || ! in_array( 'sha384', array_map( 'strtolower', hash_algos() ) ) ) {
@@ -1131,16 +1144,6 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 			),
 			( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ? 'sodium_crypto_sign_verify_detached' : 'sha384' )
 		);
-	}
-
-	// If a signature was not provided, but the URL for the file was, attempt suffixing `.sig` to the filename.
-	if ( ! $signatures && $url ) {
-		// Retrieve signatures from a file if the header wasn't included.
-		// WordPress.org stores signatures at $package_url.sig
-		$signature_request = wp_safe_remote_get( $url . '.sig' );
-		if ( ! is_wp_error( $signature_request ) && 200 === wp_remote_retrieve_response_code( $signature_request ) ) {
-			$signatures = explode( "\n", wp_remote_retrieve_body( $signature_request ) );
-		}
 	}
 
 	if ( ! $signatures ) {
@@ -1193,7 +1196,6 @@ function verify_file_signature( $filename, $signatures, $url = false ) {
 		),
 		// Error data helpful for debugging:
 		array(
-			'url'        => $url,
 			'filename'   => $filename_for_errors,
 			'keys'       => $trusted_keys,
 			'signatures' => $signatures,
