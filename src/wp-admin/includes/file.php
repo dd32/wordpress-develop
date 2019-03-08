@@ -1214,6 +1214,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 function wp_trusted_keys() {
 	$trusted_keys = array(
 		// TODO: Fill with WordPress.org keys x2.
+		'fRPyrxb/MvVLbdsYi+OOEv4xc+Eqpsj+kkAS6gNOkI0=', // WordPress.org Test Key #1
 	);
 
 	/**
