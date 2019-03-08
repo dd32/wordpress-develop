@@ -1199,7 +1199,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 			'filename'   => $filename_for_errors,
 			'keys'       => $trusted_keys,
 			'signatures' => $signatures,
-			'hash'       => base64_encode( $file_hash ),
+			'hash'       => bin2hex( $file_hash ),
 		)
 	);
 }
