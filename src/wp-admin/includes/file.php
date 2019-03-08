@@ -1054,7 +1054,7 @@ function download_url( $url, $timeout = 300, $signature_softfail = true ) {
 			// WordPress.org stores signatures at $package_url.sig
 			$signature_request = wp_safe_remote_get( $url . '.sig' );
 			if ( ! is_wp_error( $signature_request ) && 200 === wp_remote_retrieve_response_code( $signature_request ) ) {
-				$signatures = explode( "\n", wp_remote_retrieve_body( $signature_request ) );
+				$signature = explode( "\n", wp_remote_retrieve_body( $signature_request ) );
 			}
 		}
 
