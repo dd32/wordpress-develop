@@ -1043,7 +1043,7 @@ function download_url( $url, $timeout = 300, $signature_softfail = true ) {
 	 *
 	 * @param array List of hostnames.
 	 */
-	$signed_hostnames = apply_filters( 'wp_signature_hosts', array( 'wordpress.org', 'downloads.wordpress.org', 's.w.org' ) );
+	$signed_hostnames       = apply_filters( 'wp_signature_hosts', array( 'wordpress.org', 'downloads.wordpress.org', 's.w.org' ) );
 	$signature_verification = in_array( parse_url( $url, PHP_URL_HOST ), $signed_hostnames, true );
 
 	// Perform the valiation
@@ -1059,7 +1059,7 @@ function download_url( $url, $timeout = 300, $signature_softfail = true ) {
 		}
 
 		// Perform the checks.
-		$signature_verification = verify_file_signature( $tmpfname, $signature, basename( parse_url( $url, PHP_URL_PATH ) )  );
+		$signature_verification = verify_file_signature( $tmpfname, $signature, basename( parse_url( $url, PHP_URL_PATH ) ) );
 	}
 
 	if ( is_wp_error( $signature_verification ) ) {
