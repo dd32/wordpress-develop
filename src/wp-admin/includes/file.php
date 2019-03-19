@@ -1212,10 +1212,14 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
  * @return array List of hex-encoded Signing keys.
  */
 function wp_trusted_keys() {
-	$trusted_keys = array(
-		// TODO: Fill with WordPress.org keys x2.
-		'fRPyrxb/MvVLbdsYi+OOEv4xc+Eqpsj+kkAS6gNOkI0=', // WordPress.org Test Key #1
-	);
+	$trusted_keys = array();
+
+	if ( time() < 1617235200 ) {
+		// WordPress.org Key #1 - This key is only valid before April 1st, 2021.
+		$trusted_keys[] = 'fRPyrxb/MvVLbdsYi+OOEv4xc+Eqpsj+kkAS6gNOkI0=';
+	}
+
+	// TODO: Add key #2 with longer expiration.
 
 	/**
 	 * Filter the valid Signing keys used to verify the contents of files.
