@@ -9,6 +9,8 @@ class Core_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 	 * @group upgrade-tests
 	 */
 	function test_core_reinstall() {
+		$this->markTestSkipped( "Not viable." );
+
 		if ( ! getenv( 'WP_TRAVISCI' ) ) {
 			$this->markTestSkipped( "We don't appear to be running in a travis environment." );
 		}
@@ -54,10 +56,10 @@ class Core_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 		add_filter( 'update_feedback', $message_recorder, 1, 1 );
 
 		wp_version_check();
+		// Assume that the first upgrade included is either development, or latest.
+		$update  = get_site_transient( 'update_core' )->updates[0];
 
-		$update  = find_core_update( false, 'en_US' );
 		WP_Filesystem( [], ABSPATH, true );
-		$update->response = 'reinstall';
 		$upgrader = new Core_Upgrader();
 		$result   = $upgrader->upgrade(
 			$update,
