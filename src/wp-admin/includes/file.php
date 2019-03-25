@@ -970,10 +970,10 @@ function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
  *
  * @param string $url                The URL of the file to download.
  * @param int    $timeout            The timeout for the request to download the file. Default 300 seconds.
- * @param bool   $signature_softfail Whether to allow Signature Verification to softfail. Default true.
+ * @param bool   $signature_softfail Whether to allow Signature Verification to softfail. Default null (No verification performed).
  * @return string|WP_Error Filename on success, WP_Error on failure.
  */
-function download_url( $url, $timeout = 300, $signature_softfail = true ) {
+function download_url( $url, $timeout = 300, $signature_softfail = null ) {
 	//WARNING: The file is not automatically deleted, The script must unlink() the file.
 	if ( ! $url ) {
 		return new WP_Error( 'http_no_url', __( 'Invalid URL Provided.' ) );
@@ -1045,7 +1045,7 @@ function download_url( $url, $timeout = 300, $signature_softfail = true ) {
 	 * @param array List of hostnames.
 	 */
 	$signed_hostnames       = apply_filters( 'wp_signature_hosts', array( 'wordpress.org', 'downloads.wordpress.org', 's.w.org' ) );
-	$signature_verification = in_array( parse_url( $url, PHP_URL_HOST ), $signed_hostnames, true );
+	$signature_verification = in_array( parse_url( $url, PHP_URL_HOST ), $signed_hostnames, true ) && ! is_null( $signature_softfail );
 
 	// Perform the valiation
 	if ( $signature_verification ) {
