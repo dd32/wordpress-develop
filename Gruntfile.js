@@ -666,6 +666,12 @@ module.exports = function(grunt) {
 				args: ['--verbose', '-c', 'phpunit.xml.dist', '--group', 'restapi-jsclient']
 			}
 		},
+		travis_phpunit_upgrade: {
+			'default' : {
+				cmd: 'phpunit',
+				args: [ '--verbose', '-c', 'phpunit.xml.dist', '--group', 'upgrade-tests' ]
+			}
+		},
 		uglify: {
 			options: {
 				ASCIIOnly: true,
@@ -1433,6 +1439,7 @@ module.exports = function(grunt) {
 	// Travis CI tasks.
 	grunt.registerTask('travis:js', 'Runs Javascript Travis CI tasks.', [ 'jshint:corejs', 'qunit:compiled' ]);
 	grunt.registerTask('travis:phpunit', 'Runs PHPUnit Travis CI tasks.', [ 'build', 'phpunit' ]);
+	grunt.registerTask('travis:phpunit:upgrade', 'Runs Upgrade PHPUnit Travis CI tasks.', [ 'build', 'travis_phpunit_upgrade' ]);
 	grunt.registerTask('travis:format', 'Runs Code formatting Travis CI tasks.', [ 'format:php:error' ]);
 
 	// Patch task.
