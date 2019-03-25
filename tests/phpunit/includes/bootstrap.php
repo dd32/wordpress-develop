@@ -145,11 +145,13 @@ require dirname( __FILE__ ) . '/testcase-rest-post-type-controller.php';
 require dirname( __FILE__ ) . '/testcase-xmlrpc.php';
 require dirname( __FILE__ ) . '/testcase-ajax.php';
 require dirname( __FILE__ ) . '/testcase-canonical.php';
+require dirname( __FILE__ ) . '/testcase-upgrade.php';
 require dirname( __FILE__ ) . '/exceptions.php';
 require dirname( __FILE__ ) . '/utils.php';
 require dirname( __FILE__ ) . '/spy-rest-server.php';
 require dirname( __FILE__ ) . '/class-wp-rest-test-search-handler.php';
 require dirname( __FILE__ ) . '/class-wp-fake-block-type.php';
+require dirname( __FILE__ ) . '/class-wp-tests-upgrader-skin.php';
 
 /**
  * A class to handle additional command line arguments passed to the script.
@@ -168,6 +170,7 @@ class WP_PHPUnit_Util_Getopt {
 			'ajax'          => true,
 			'ms-files'      => true,
 			'external-http' => true,
+			'upgrade-tests' => true,
 		);
 
 		while ( current( $argv ) ) {
