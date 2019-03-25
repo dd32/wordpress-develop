@@ -21,9 +21,11 @@ class Core_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 		};
 		add_filter( 'update_feedback', $message_recorder, 1, 1 );
 
+		wp_version_check();
+
 		ob_start();
 		// Ew. This can only be done once..
-		include ABSPATH . 'wp-admin/upgrade-core.php';
+		include ABSPATH . 'wp-admin/update-core.php';
 		do_core_upgrade( true );
 		$output = ob_end_clean();
 
@@ -50,6 +52,8 @@ class Core_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 			return $message;
 		};
 		add_filter( 'update_feedback', $message_recorder, 1, 1 );
+
+		wp_version_check();
 
 		$update  = find_core_update( false, 'en_US' );
 		WP_Filesystem( [], ABSPATH, true );
