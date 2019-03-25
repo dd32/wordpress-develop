@@ -1050,7 +1050,13 @@ function download_url( $url, $timeout = 300, $signature_softfail = true ) {
 	// Perform the valiation
 	if ( $signature_verification ) {
 		$signature = wp_remote_retrieve_header( $response, 'x-content-signature' );
-		if ( ! $signature ) {
+		if ( $signature ) {
+			// WP_HTTP will return multiple headers as an array.
+			// But a proxy may combine the multiple headers into a single header separated by ', '.
+			if ( is_string( $signature ) ) {
+				$signature = preg_split( '/[,\s]/', $signature, 0, PREG_SPLIT_NO_EMPTY );
+			}
+		} else {
 			// Retrieve signatures from a file if the header wasn't included.
 			// WordPress.org stores signatures at $package_url.sig
 			$signature_request = wp_safe_remote_get( $url . '.sig' );
