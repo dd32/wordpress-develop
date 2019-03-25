@@ -47,7 +47,6 @@ class Core_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 			$this->markTestSkipped( "We don't appear to be running in a travis environment." );
 		}
 
-		// $messages contains the during-upgrade texts, $output below will contain the success/fail messages.
 		$messages = [];
 		$message_recorder = function( $message ) use ( $messages ) {
 			$messages[] = $message;
@@ -72,7 +71,9 @@ class Core_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 
 		var_dump( $result, $messages );
 
-		$this->assertTrue( $result );
+		$this->assertNotWPError( $result );
+		$this->assertNotFalse( $result );
+		$this->assertTrue( did_action( '_core_updated_successfully' ) );
 
 	}
 }
