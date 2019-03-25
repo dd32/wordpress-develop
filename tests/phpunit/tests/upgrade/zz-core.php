@@ -73,7 +73,7 @@ class Core_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 
 		$this->assertNotWPError( $result );
 		$this->assertNotFalse( $result );
-		$this->assertTrue( did_action( '_core_updated_successfully' ) );
+		$this->assertGreaterThanOrEqual( 1, did_action( '_core_updated_successfully' ) );
 
 	}
 }
