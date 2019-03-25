@@ -1413,6 +1413,14 @@ module.exports = function(grunt) {
 		}, this.async());
 	});
 
+	grunt.registerMultiTask('travis_phpunit_upgrade', 'Runs Upgrade PHPUnit tests.', function() {
+		grunt.util.spawn({
+			cmd: this.data.cmd,
+			args: this.data.args,
+			opts: {stdio: 'inherit'}
+		}, this.async());
+	});
+
 	grunt.registerTask('qunit:compiled', 'Runs QUnit tests on compiled as well as uncompiled scripts.',
 		['build', 'copy:qunit', 'qunit']);
 
