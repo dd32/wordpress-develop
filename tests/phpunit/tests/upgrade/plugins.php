@@ -36,7 +36,7 @@ class Plugin_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 
 		$signing_failed = false;
 		foreach ( $messages as $message ) {
-			$signing_failed |= ( false !== stripos( 'could not be verified', $message ) );
+			$signing_failed = $signing_failed || ( false !== stripos( 'could not be verified', $message ) );
 		}
 
 		$this->assertTrue( $signing_failed );
