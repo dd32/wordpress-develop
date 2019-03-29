@@ -6,7 +6,6 @@ abstract class WP_Upgrader_UnitTestCase extends WP_UnitTestCase {
 	// We're not interested in actually installing the plugin though, just the steps prior to the install.
 	function install_plugin_and_return_messages( $plugin_slug ) {
 		include_once( ABSPATH . 'wp-admin/includes/plugin-install.php' ); // For plugins_api()
-//		include_once( ABSPATH . 'wp-admin/includes/class-wp-upgrader.php' ); // For Plugin_Upgrader
 
 		if ( preg_match( '!^https?://!i', $plugin_slug ) ) {
 			// The $plugin_slug looked like a URL, so we'll install that.
@@ -50,7 +49,7 @@ abstract class WP_Upgrader_UnitTestCase extends WP_UnitTestCase {
 		}
 
 		// Generate a new key.
-		$random_keypair = sodium_crypto_sign_keypair();
+		$random_keypair    = sodium_crypto_sign_keypair();
 		$random_public_key = sodium_crypto_sign_publickey( $random_keypair );
 		return base64_encode( $random_public_key );
 	}
