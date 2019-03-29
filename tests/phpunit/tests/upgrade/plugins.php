@@ -22,6 +22,48 @@ class Plugin_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 	}
 
 	/**
+	 * Integration test - Install a plugin, make sure it succeeds.
+	 * @group upgrade-tests
+	 */
+	function test_install_plugin_hello_dolly_signing_failure() {
+
+		add_filter( 'wp_trusted_keys', array( $this, 'filter_wp_trusted_keys_only_invalid_key' ) );
+
+		// We don't care if this installation succeeds.
+		$messages = $this->install_plugin_and_return_messages( 'hello-dolly' );
+
+		remove_filter( 'wp_trusted_keys', array( $this, 'filter_wp_trusted_keys_only_invalid_key' ) );
+
+		$signing_failed = false;
+		foreach ( $messages as $message ) {
+			$signing_failued |= ( false !== stripos( 'could not be verified', $message ) );
+		}
+
+		$this->assertTrue( $signing_failed );
+	}
+
+	/**
+	 * Integration test - Install a plugin, make sure it succeeds.
+	 * @group upgrade-tests
+	 */
+	function test_install_plugin_hello_dolly_add_bad_key() {
+		$this->markTestSkipped( "Plugins do not yet have signatures." );
+
+		add_filter( 'wp_trusted_keys', array( $this, 'filter_wp_trusted_keys_prefix_invalid_key' ) );
+
+		// We don't care if this installation succeeds, we just want to make sure that
+		$messages = $this->install_plugin_and_return_messages( 'hello-dolly' );
+
+		remove_filter( 'wp_trusted_keys', array( $this, 'filter_wp_trusted_keys_prefix_invalid_key' ) );
+
+		// There should be NO update strings which mention failures, if this plugin has signatures available.
+		foreach ( $messages as $message ) {
+			// TODO: This is a bit fragile and has to be kept in sync with verify_file_signature()
+			$this->assertNotContains( 'could not be verified', $message );
+		}
+	}
+
+	/**
 	 * Integration test - Install a plugin from Github, make sure it succeeds.
 	 * @group upgrade-tests-plugins
 	 */
