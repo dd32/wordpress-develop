@@ -8,7 +8,7 @@ class Core_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 	 * Integration test - Test a reinstall of WordPress.
 	 * @group upgrade-tests
 	 */
-	function test_core_reinstall_alt() {
+	function test_core_reinstall() {
 		if ( ! getenv( 'WP_TRAVISCI' ) ) {
 			$this->markTestSkipped( "We don't appear to be running in a travis environment." );
 		}
