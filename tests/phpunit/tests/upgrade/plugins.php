@@ -9,6 +9,13 @@ class Plugin_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 		$messages = $this->install_plugin_and_return_messages( 'hello-dolly' );
 		$this->assertContains( 'Plugin installed successfully.', $messages );
 
+		/*
+		foreach ( $messages as $message ) {
+			// TODO: This is a bit fragile and has to be kept in sync with verify_file_signature(), and needs to be enabled for all plugins first.
+			$this->assertNotContains( 'could not be verified', $message );
+		}
+		*/
+
 		// Now install it again, it should fail.
 		$messages = $this->install_plugin_and_return_messages( 'hello-dolly' );
 		$this->assertNotContains( 'Plugin installed successfully.', $messages );
@@ -46,6 +53,14 @@ class Plugin_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 
 		$this->assertTrue( $result );
 		$this->assertContains( 'Plugin updated successfully.', $messages );
+
+		/*
+		foreach ( $messages as $message ) {
+			// TODO: This is a bit fragile and has to be kept in sync with verify_file_signature(), and needs to be enabled for all plugins first.
+			$this->assertNotContains( 'could not be verified', $message );
+		}
+		*/
+
 	}
 
 	function tearDown() {
