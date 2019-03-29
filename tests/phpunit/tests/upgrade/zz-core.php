@@ -8,58 +8,21 @@ class Core_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 	 * Integration test - Test a reinstall of WordPress.
 	 * @group upgrade-tests
 	 */
-	function test_core_reinstall() {
-		$this->markTestSkipped( "Not viable." );
-
-		if ( ! getenv( 'WP_TRAVISCI' ) ) {
-			$this->markTestSkipped( "We don't appear to be running in a travis environment." );
-		}
-
-		// $messages contains the during-upgrade texts, $output below will contain the success/fail messages.
-		$messages = [];
-		$message_recorder = function( $message ) use ( $messages ) {
-			$messages[] = $message;
-			return $message;
-		};
-		add_filter( 'update_feedback', $message_recorder, 1, 1 );
-
-		wp_version_check();
-
-		ob_start();
-		// Ew. This can only be done once..
-		include ABSPATH . 'wp-admin/update-core.php';
-		do_core_upgrade( true );
-		$output = ob_end_clean();
-
-		remove_filter( 'update_feedback', $message_recorder, 1 );
-
-		var_dump( $output, $messages );
-
-		$this->assertContains( 'WordPress updated successfully', $output );
-	}
-
-	/**
-	 * Integration test - Test a reinstall of WordPress.
-	 * @group upgrade-tests
-	 */
 	function test_core_reinstall_alt() {
 		if ( ! getenv( 'WP_TRAVISCI' ) ) {
 			$this->markTestSkipped( "We don't appear to be running in a travis environment." );
 		}
 
-		$messages = [];
-		$message_recorder = function( $message ) use ( $messages ) {
-			$messages[] = $message;
-			return $message;
-		};
-		add_filter( 'update_feedback', $message_recorder, 1, 1 );
+		// $skin will get first few update messages, and then they'll be available through `update_feedback` instead.
+		$skin = new WP_Tests_Upgrader_Skin();
+		add_filter( 'update_feedback', [ $skin, 'feedback' ], 0, 1 );
 
 		wp_version_check();
 		// Assume that the first upgrade included is either development, or latest.
-		$update  = get_site_transient( 'update_core' )->updates[0];
+		$update = get_site_transient( 'update_core' )->updates[0];
 
 		WP_Filesystem( [], ABSPATH, true );
-		$upgrader = new Core_Upgrader();
+		$upgrader = new Core_Upgrader( $skin );
 		$result   = $upgrader->upgrade(
 			$update,
 			array(
@@ -67,9 +30,15 @@ class Core_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 			)
 		);
 
-		remove_filter( 'update_feedback', $message_recorder, 1 );
+		remove_filter( 'update_feedback', [ $skin, 'feedback' ], 1 );
 
-		var_dump( $result, $messages );
+		$messages = $skin->get_upgrade_messages();
+		foreach ( $messages as $message ) {
+			// TODO: This is a bit fragile and has to be kept in sync with verify_file_signature()
+			$this->assertContains( 'could not be verified', $message );
+		}
+
+		// $result is the new version on success
 
 		$this->assertNotWPError( $result );
 		$this->assertNotFalse( $result );
