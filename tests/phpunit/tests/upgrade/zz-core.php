@@ -35,7 +35,7 @@ class Core_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 		$messages = $skin->get_upgrade_messages();
 		foreach ( $messages as $message ) {
 			// TODO: This is a bit fragile and has to be kept in sync with verify_file_signature()
-			$this->assertContains( 'could not be verified', $message );
+			$this->assertNotContains( 'could not be verified', $message );
 		}
 
 		// $result is the new version on success
