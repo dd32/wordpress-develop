@@ -22,6 +22,22 @@ class Plugin_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 	}
 
 	/**
+	 * Integration test - Install a plugin from Github, make sure it succeeds.
+	 * @group upgrade-tests-plugins
+	 */
+	function test_install_plugin_github_wordpress_importer() {
+		$messages = $this->install_plugin_and_return_messages( 'https://github.com/WordPress/wordpress-importer/archive/master.zip' );
+
+		var_dump( $messages );
+		$this->assertContains( 'Plugin installed successfully.', $messages );
+
+		foreach ( $messages as $message ) {
+			// TODO: This is a bit fragile and has to be kept in sync with verify_file_signature()
+			$this->assertNotContains( 'could not be verified', $message );
+		}
+	}
+
+	/**
 	 * Integration test - Install a plugin, check updates pass.
 	 * @group upgrade-tests
 	 */
@@ -64,6 +80,9 @@ class Plugin_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 	}
 
 	function tearDown() {
-		delete_plugins( [ 'hello-dolly/hello.php' ] );
+		delete_plugins( [
+			'hello-dolly/hello.php',
+			'wordpress-importer-master/wordpress-importer.php'
+		] );
 	}
 }
