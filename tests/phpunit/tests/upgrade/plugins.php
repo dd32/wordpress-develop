@@ -47,7 +47,7 @@ class Plugin_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 	 * @group upgrade-tests
 	 */
 	function test_install_plugin_hello_dolly_add_bad_key() {
-		$this->markTestSkipped( "Plugins do not yet have signatures." );
+		$this->markTestSkipped( 'Plugins do not yet have signatures.' );
 
 		add_filter( 'wp_trusted_keys', array( $this, 'filter_wp_trusted_keys_prefix_invalid_key' ) );
 
@@ -93,9 +93,13 @@ class Plugin_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 
 		// Lower the version string of the plugin..
 		$contents = file_get_contents( $hello_dolly );
-		$contents = preg_replace_callback( '!^([\s*]*Version:\s*)([\d.]+)$!im', function( $m ) {
-			return $m[1] . ( floatval( $m[2] ) - 0.1 );
-		}, $contents );
+		$contents = preg_replace_callback(
+			'!^([\s*]*Version:\s*)([\d.]+)$!im',
+			function( $m ) {
+				return $m[1] . ( floatval( $m[2] ) - 0.1 );
+			},
+			$contents
+		);
 		file_put_contents( $hello_dolly, $contents );
 
 		// Get the update..
@@ -103,7 +107,7 @@ class Plugin_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 
 		$skin     = new WP_Tests_Upgrader_Skin();
 		$upgrader = new Plugin_Upgrader( $skin );
-		$result = $upgrader->upgrade(
+		$result   = $upgrader->upgrade(
 			plugin_basename( $hello_dolly )
 		);
 
@@ -122,9 +126,11 @@ class Plugin_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 	}
 
 	function tearDown() {
-		delete_plugins( [
-			'hello-dolly/hello.php',
-			'wordpress-importer-master/wordpress-importer.php'
-		] );
+		delete_plugins(
+			[
+				'hello-dolly/hello.php',
+				'wordpress-importer-master/wordpress-importer.php',
+			]
+		);
 	}
 }
