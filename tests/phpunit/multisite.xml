@@ -40,7 +40,7 @@
 			<group>ms-excluded</group>
 			<group>external-http</group>
 			<group>oembed-headers</group>
-			<group>update-tests</group>
+			<group>upgrae-tests</group>
 		</exclude>
 	</groups>
 	<listeners>

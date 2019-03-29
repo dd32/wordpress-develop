@@ -31,7 +31,7 @@
 			<group>ms-files</group>
 			<group>ms-required</group>
 			<group>external-http</group>
-			<group>update-tests</group>
+			<group>upgrade-tests</group>
 		</exclude>
 	</groups>
 	<logging>
