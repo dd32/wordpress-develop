@@ -36,7 +36,7 @@ class Plugin_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 
 		$signing_failed = false;
 		foreach ( $messages as $message ) {
-			$signing_failed = $signing_failed || ( false !== stripos( 'could not be verified', $message ) );
+			$signing_failed = $signing_failed || ( false !== stripos( $message, 'could not be verified' ) );
 		}
 
 		$this->assertTrue( $signing_failed );
@@ -65,12 +65,11 @@ class Plugin_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 
 	/**
 	 * Integration test - Install a plugin from Github, make sure it succeeds.
-	 * @group upgrade-tests-plugins
+	 * @group upgrade-tests
 	 */
 	function test_install_plugin_github_wordpress_importer() {
 		$messages = $this->install_plugin_and_return_messages( 'https://github.com/WordPress/wordpress-importer/archive/master.zip' );
 
-		var_dump( $messages );
 		$this->assertContains( 'Plugin installed successfully.', $messages );
 
 		foreach ( $messages as $message ) {
