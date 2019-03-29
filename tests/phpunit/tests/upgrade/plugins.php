@@ -29,7 +29,7 @@ class Plugin_Upgrader_Tests extends WP_Upgrader_UnitTestCase {
 
 		add_filter( 'wp_trusted_keys', array( $this, 'filter_wp_trusted_keys_only_invalid_key' ) );
 
-		// We don't care if this installation succeeds.
+		// We don't care if this installation succeeds, we just need to get to the 'downloading' phase which is before it bails because it's already installed.
 		$messages = $this->install_plugin_and_return_messages( 'hello-dolly' );
 
 		remove_filter( 'wp_trusted_keys', array( $this, 'filter_wp_trusted_keys_only_invalid_key' ) );
