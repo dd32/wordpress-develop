@@ -276,7 +276,7 @@ class WP_Upgrader {
 
 		$this->skin->feedback( 'downloading_package', $package );
 
-		$download_file = download_url( $package, 300, ( $check_signatures ? true : null ) );
+		$download_file = download_url( $package, 300, $check_signatures );
 
 		if ( is_wp_error( $download_file ) && ! $download_file->get_error_data( 'softfail-filename' ) ) {
 			return new WP_Error( 'download_failed', $this->strings['download_failed'], $download_file->get_error_message() );
