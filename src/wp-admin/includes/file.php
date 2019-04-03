@@ -1156,7 +1156,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 			),
 			array(
-				'filename'    => $filename_for_errors,
+				'filename' => $filename_for_errors,
 			)
 		);
 	}
