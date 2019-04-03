@@ -968,12 +968,12 @@ function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
  * @since 2.5.0
  * @since 5.2.0 Signature Verification with SoftFail was added.
  *
- * @param string $url                The URL of the file to download.
- * @param int    $timeout            The timeout for the request to download the file. Default 300 seconds.
- * @param bool   $signature_softfail Whether to allow Signature Verification to softfail. Default null (No verification performed).
+ * @param string $url                    The URL of the file to download.
+ * @param int    $timeout                The timeout for the request to download the file. Default 300 seconds.
+ * @param bool   $signature_verification Whether to perform Signature Verification. Default false.
  * @return string|WP_Error Filename on success, WP_Error on failure.
  */
-function download_url( $url, $timeout = 300, $signature_softfail = null ) {
+function download_url( $url, $timeout = 300, $signature_verification = false ) {
 	//WARNING: The file is not automatically deleted, The script must unlink() the file.
 	if ( ! $url ) {
 		return new WP_Error( 'http_no_url', __( 'Invalid URL Provided.' ) );
@@ -1037,17 +1037,20 @@ function download_url( $url, $timeout = 300, $signature_softfail = null ) {
 		}
 	}
 
-	/**
-	 * Filters the list of hosts which should have Signature Verification attempted on.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @param array List of hostnames.
-	 */
-	$signed_hostnames       = apply_filters( 'wp_signature_hosts', array( 'wordpress.org', 'downloads.wordpress.org', 's.w.org' ) );
-	$signature_verification = in_array( parse_url( $url, PHP_URL_HOST ), $signed_hostnames, true ) && ! is_null( $signature_softfail );
+	// If the caller expects signature verification to occur, check to see if this URL supports it.
+	if ( $signature_verification ) {
+		/**
+		 * Filters the list of hosts which should have Signature Verification attempteds on.
+		 *
+		 * @since 5.2.0
+		 *
+		 * @param array List of hostnames.
+		 */
+		$signed_hostnames       = apply_filters( 'wp_signature_hosts', array( 'wordpress.org', 'downloads.wordpress.org', 's.w.org' ) );
+		$signature_verification = in_array( parse_url( $url, PHP_URL_HOST ), $signed_hostnames, true );
+	}
 
-	// Perform the valiation
+	// Perform signature valiation if supported.
 	if ( $signature_verification ) {
 		$signature = wp_remote_retrieve_header( $response, 'x-content-signature' );
 		if ( ! $signature ) {
@@ -1075,7 +1078,7 @@ function download_url( $url, $timeout = 300, $signature_softfail = null ) {
 			 * @param bool   $signature_softfail If a softfail is allowed.
 			 * @param string $url                The url being accessed.
 			 */
-			apply_filters( 'wp_signature_softfail', $signature_softfail, $url )
+			apply_filters( 'wp_signature_softfail', true, $url )
 		) {
 			$signature_verification->add_data( $tmpfname, 'softfail-filename' );
 		} else {
