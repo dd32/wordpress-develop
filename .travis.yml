@@ -18,8 +18,20 @@ matrix:
     env: WP_TRAVISCI=travis:format
   - php: 7.1
     env: WP_TRAVISCI=travis:js
+  - php: 7.4snapshot
   - php: 7.3
+  - php: 7.3
+    env: WP_TRAVIS_OBJECT_CACHE=true
+    services: memcached
+  - php: 7.2
+  - php: 7.1
+  - php: 7.0
+    env: WP_TEST_REPORTER=true
   - php: 5.6
+  - php: nightly
+  allow_failures:
+  - php: 7.4snapshot
+  - php: nightly
   fast_finish: true
 before_install:
 - |
