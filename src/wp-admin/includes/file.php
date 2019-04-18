@@ -1147,6 +1147,31 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 		);
 	}
 
+	// Check for a edge-case affecting PHP Maths abilities
+	if (
+		! extension_loaded('sodium') &&
+		function_exists( 'php_sapi_name' ) && 'fpm' == php_sapi_name() &&
+		PHP_VERSION_ID >= 70200 && PHP_VERSION_ID <= 70202 &&
+		ini_get( 'opcache.enable' )
+	) {
+		// Sodium_Compat isn't compatible with PHP 7.2.0~7.2.2 due to a PHP bug, bail early as it'll fail.
+		// https://bugs.php.net/bug.php?id=75938
+
+		return new WP_Error(
+			'signature_verification_unsupported',
+			sprintf(
+				/* translators: 1: The filename of the package. */
+				__( 'The authenticity of %1$s could not be verified as signature verification is unavailable on this system.' ),
+				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
+			),
+			array (
+				'php'    => phpversion(),
+				'sodium' => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
+			)
+		);
+
+	}
+
 	if ( ! $signatures ) {
 		return new WP_Error(
 			'signature_verification_no_signature',
