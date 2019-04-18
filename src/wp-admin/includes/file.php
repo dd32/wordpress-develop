@@ -1053,9 +1053,34 @@ function download_url( $url, $timeout = 300, $signature_softfail = true ) {
 		if ( ! $signature ) {
 			// Retrieve signatures from a file if the header wasn't included.
 			// WordPress.org stores signatures at $package_url.sig
-			$signature_request = wp_safe_remote_get( $url . '.sig' );
-			if ( ! is_wp_error( $signature_request ) && 200 === wp_remote_retrieve_response_code( $signature_request ) ) {
-				$signature = explode( "\n", wp_remote_retrieve_body( $signature_request ) );
+
+			$signature_url = false;
+			$url_path      = parse_url( $url, PHP_URL_PATH );
+			if ( substr( $url_path, -4 ) == '.zip' || substr( $url_path, -7 ) == '.tar.gz' ) {
+				$signature_url = str_replace( $url_path, $url_path . '.sig', $url );
+			}
+
+			/**
+			 * Filter the URL where the signature for a file is located.
+			 *
+			 * @since 5.2
+			 *
+			 * @param false|string $signature_url The URL where signatures can be found for a file, or false if none are known.
+			 * @param string $url                 The URL being verified.
+			 */
+			$signature_url = c( 'wp_signature_url', $signature_url, $url );
+
+			if ( $signature_url ) {
+				$signature_request = wp_safe_remote_get(
+					$signature_url,
+					array(
+						'limit_response_size' => 10 * 1024, // 10KB should be large enough for quite a few signatures.
+					)
+				);
+
+				if ( ! is_wp_error( $signature_request ) && 200 === wp_remote_retrieve_response_code( $signature_request ) ) {
+					$signature = explode( "\n", wp_remote_retrieve_body( $signature_request ) );
+				}
 			}
 		}
 
