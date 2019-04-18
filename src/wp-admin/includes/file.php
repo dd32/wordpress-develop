@@ -1149,10 +1149,9 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 
 	// Check for a edge-case affecting PHP Maths abilities
 	if (
-		! extension_loaded('sodium') &&
-		function_exists( 'php_sapi_name' ) && 'fpm' == php_sapi_name() &&
-		PHP_VERSION_ID >= 70200 && PHP_VERSION_ID <= 70202 &&
-		ini_get( 'opcache.enable' )
+		! extension_loaded( 'sodium' ) &&
+		in_array( PHP_VERSION_ID, [ 70200, 70201, 70202 ], true ) &&
+		function_exists( 'opcache_get_status' ) && opcache_get_status( false )
 	) {
 		// Sodium_Compat isn't compatible with PHP 7.2.0~7.2.2 due to a PHP bug, bail early as it'll fail.
 		// https://bugs.php.net/bug.php?id=75938
