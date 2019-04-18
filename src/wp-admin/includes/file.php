@@ -1163,7 +1163,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 				__( 'The authenticity of %1$s could not be verified as signature verification is unavailable on this system.' ),
 				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 			),
-			array (
+			array(
 				'php'    => phpversion(),
 				'sodium' => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 			)
