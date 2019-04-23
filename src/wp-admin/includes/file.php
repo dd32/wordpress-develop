@@ -1151,9 +1151,9 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 	if (
 		! extension_loaded( 'sodium' ) &&
 		in_array( PHP_VERSION_ID, [ 70200, 70201, 70202 ], true ) &&
-		function_exists( 'opcache_get_status' ) && opcache_get_status( false )
+		extension_loaded( 'opcache' )
 	) {
-		// Sodium_Compat isn't compatible with PHP 7.2.0~7.2.2 due to a PHP bug, bail early as it'll fail.
+		// Sodium_Compat isn't compatible with PHP 7.2.0~7.2.2 due to a bug in the PHP Opcache extension, bail early as it'll fail.
 		// https://bugs.php.net/bug.php?id=75938
 
 		return new WP_Error(
