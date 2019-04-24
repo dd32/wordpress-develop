@@ -737,7 +737,7 @@ class WP_Upgrader {
 		if ( is_wp_error( $download ) && $download->get_error_data( 'softfail-filename' ) ) {
 
 			// Don't output the 'no signature could be found' failure message for now.
-			if ( 'signature_verification_no_signature' != $download->get_error_code() ) {
+			if ( 'signature_verification_no_signature' != $download->get_error_code() || WP_DEBUG ) {
 				// Outout the failure error as a normal feedback, and not as an error:
 				$this->skin->feedback( $download->get_error_message() );
 
