@@ -735,16 +735,20 @@ class WP_Upgrader {
 		// Allow for signature soft-fail.
 		// WARNING: This may be removed in the future.
 		if ( is_wp_error( $download ) && $download->get_error_data( 'softfail-filename' ) ) {
-			// Outout the failure error as a normal feedback, and not as an error:
-			$this->skin->feedback( $download->get_error_message() );
 
-			// Report this failure back to WordPress.org for debugging purposes.
-			wp_version_check(
-				array(
-					'signature_failure_code' => $download->get_error_code(),
-					'signature_failure_data' => $download->get_error_data(),
-				)
-			);
+			// Don't output the 'no signature could be found' failure message for now.
+			if ( 'signature_verification_no_signature' != $download->get_error_code() ) {
+				// Outout the failure error as a normal feedback, and not as an error:
+				$this->skin->feedback( $download->get_error_message() );
+
+				// Report this failure back to WordPress.org for debugging purposes.
+				wp_version_check(
+					array(
+						'signature_failure_code' => $download->get_error_code(),
+						'signature_failure_data' => $download->get_error_data(),
+					)
+				);
+			}
 
 			// Pretend this error didn't happen.
 			$download = $download->get_error_data( 'softfail-filename' );
