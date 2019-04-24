@@ -1068,7 +1068,7 @@ function download_url( $url, $timeout = 300, $signature_softfail = true ) {
 			 * @param false|string $signature_url The URL where signatures can be found for a file, or false if none are known.
 			 * @param string $url                 The URL being verified.
 			 */
-			$signature_url = c( 'wp_signature_url', $signature_url, $url );
+			$signature_url = apply_filters( 'wp_signature_url', $signature_url, $url );
 
 			if ( $signature_url ) {
 				$signature_request = wp_safe_remote_get(
