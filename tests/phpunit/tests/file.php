@@ -196,12 +196,10 @@ class Tests_File extends WP_UnitTestCase {
 		add_filter( 'wp_trusted_keys', array( $this, 'filter_trust_plus85Tq_key' ) );
 
 		// Measure how long the call takes.
-		$timer_start = microtime(1);
-
-		$verify = verify_file_signature( $file, $expected_signature, 'WordPress' );
-
-		$timer_end  = microtime(1);
-		$time_taken = ($timer_end - $timer_start);
+		$timer_start = microtime( 1 );
+		$verify      = verify_file_signature( $file, $expected_signature, 'WordPress' );
+		$timer_end   = microtime( 1 );
+		$time_taken  = ( $timer_end - $timer_start );
 
 		unlink( $file );
 		remove_filter( 'wp_trusted_keys', array( $this, 'filter_trust_plus85Tq_key' ) );
@@ -227,7 +225,7 @@ class Tests_File extends WP_UnitTestCase {
 
 		// Test an invalid signature.
 		$expected_signature = base64_encode( str_repeat( 'A', SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES ) );
-		$verify = verify_file_signature( $file, $expected_signature, 'WordPress' );
+		$verify             = verify_file_signature( $file, $expected_signature, 'WordPress' );
 		unlink( $file );
 
 		if ( is_wp_error( $verify ) && 'signature_verification_unsupported' == $verify->get_error_code() ) {
