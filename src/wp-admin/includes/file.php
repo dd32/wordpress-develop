@@ -1200,7 +1200,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 	}
 
 	// Verify runtime speed of Sodium_Compat is acceptable.
-	if ( ! extension_loaded( 'sodium' ) ) {
+	if ( ! extension_loaded( 'sodium' ) && ! ParagonIE_Sodium_Compat::polyfill_is_fast() ) {
 		// Run `ParagonIE_Sodium_Compat::runtime_speed_test()` in optimized integer mode, as that's what WordPress utilises during signing verifications.
 		$old_fastMult                      = ParagonIE_Sodium_Compat::$fastMult;
 		ParagonIE_Sodium_Compat::$fastMult = true;
