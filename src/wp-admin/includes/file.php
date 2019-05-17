@@ -1201,11 +1201,16 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 
 	// Verify runtime speed of Sodium_Compat is acceptable.
 	if ( ! extension_loaded( 'sodium' ) && ! ParagonIE_Sodium_Compat::polyfill_is_fast() ) {
-		// Run `ParagonIE_Sodium_Compat::runtime_speed_test()` in optimized integer mode, as that's what WordPress utilises during signing verifications.
-		$old_fastMult                      = ParagonIE_Sodium_Compat::$fastMult;
-		ParagonIE_Sodium_Compat::$fastMult = true;
-		$sodium_compat_is_fast             = ParagonIE_Sodium_Compat::runtime_speed_test( 100, 10 );
-		ParagonIE_Sodium_Compat::$fastMult = $old_fastMult;
+		$sodium_compat_is_fast = false;
+
+		// Allow for an old version of Sodium_Compat being loaded before the bundled WordPress one.
+		if ( method_exists( 'ParagonIE_Sodium_Compat', 'runtime_speed_test' ) ) {
+			// Run `ParagonIE_Sodium_Compat::runtime_speed_test()` in optimized integer mode, as that's what WordPress utilises during signing verifications.
+			$old_fastMult                      = ParagonIE_Sodium_Compat::$fastMult;
+			ParagonIE_Sodium_Compat::$fastMult = true;
+			$sodium_compat_is_fast             = ParagonIE_Sodium_Compat::runtime_speed_test( 100, 10 );
+			ParagonIE_Sodium_Compat::$fastMult = $old_fastMult;
+		}
 
 		// This cannot be performed in a reasonable amount of time
 		// https://github.com/paragonie/sodium_compat#help-sodium_compat-is-slow-how-can-i-make-it-fast
