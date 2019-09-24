@@ -98,6 +98,11 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		'users'              => $user_count,
 		'multisite_enabled'  => $multisite_enabled,
 		'initial_db_version' => get_site_option( 'initial_db_version' ),
+		'extensions'         => get_loaded_extensions(),
+		'platform_flags'     => array(
+			'os'   => defined( 'PHP_OS_FAMILY' ) ? PHP_OS_FAMILY : PHP_OS,
+			'bits' => PHP_INT_SIZE === 4 ? 32 : 64,
+		),
 	);
 
 	/**
