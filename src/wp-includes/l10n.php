@@ -1014,9 +1014,16 @@ function load_script_textdomain( $handle, $domain = 'default', $path = null ) {
 	// If a path was given and the handle file exists simply return it.
 	$file_base       = 'default' === $domain ? $locale : $domain . '-' . $locale;
 	$handle_filename = $file_base . '-' . $handle . '.json';
+	$domain_filename = $file_base . '.json';
 
 	if ( $path ) {
 		$translations = load_script_translations( $path . '/' . $handle_filename, $handle, $domain );
+
+		if ( $translations ) {
+			return $translations;
+		}
+
+		$translations = load_script_translations( $path . '/' . $domain_filename, $handle, $domain );
 
 		if ( $translations ) {
 			return $translations;
@@ -1110,6 +1117,18 @@ function load_script_textdomain( $handle, $domain = 'default', $path = null ) {
 		if ( $translations ) {
 			return $translations;
 		}
+	}
+
+	$translations = load_script_translations( $languages_path . '/' . $handle_filename, $handle, $domain );
+
+	if ( $translations ) {
+		return $translations;
+	}
+
+	$translations = load_script_translations( $languages_path . '/' . $domain_filename, $handle, $domain );
+
+	if ( $translations ) {
+		return $translations;
 	}
 
 	$translations = load_script_translations( $languages_path . '/' . $md5_filename, $handle, $domain );
