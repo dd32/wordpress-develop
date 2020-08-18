@@ -32,25 +32,6 @@ done
 # PHPUnit lost a few functions, stub them back in..
 cat tests/phpunit/includes/abstract-testcase.php | head -n-1 > tests/phpunit/includes/abstract-testcase.php.tmp
 echo '
-	public function assertInternalType( string $type, mixed $var ): void {
-		if ( "integer" === $type ) {
-			$type = "int";
-		}
-
-		$method = "assertIs$type";
-
-		static::$method( $var );
-	}
-
-	public function assertNotInternalType( string $type, mixed $var ): void {
-		if ( "integer" === $type ) {
-			$type = "int";
-		}
-
-		$method = "assertIsNot$type";
-
-		static::$method( $var );
-	}
 
 	// https://github.com/sebastianbergmann/phpunit/issues/3425
 	// cannot do assertContains() as it must match the parent syntax that requires $b to be iterable.
@@ -62,23 +43,31 @@ echo '
 		}
 	}
 
-	// Avoid PHPUnit warnings. Deprecated.
-	// https://github.com/sebastianbergmann/phpunit/issues/4077
-	public static function assertFileNotExists( string $file, string $message = "" ): void {
-		static::assertFileDoesNotExist( $file, $message );
+	public static function WPassertNotContains( $a, $b, $c = "" ): void {
+		if ( is_scalar( $b ) ) {
+			static::assertStringNotContainsString( $a, $b, $c );
+		} else {
+			static::assertNotContains( $a, $b, $c );
+		}
 	}
 
 }' >> tests/phpunit/includes/abstract-testcase.php.tmp
 mv tests/phpunit/includes/abstract-testcase.php.tmp tests/phpunit/includes/abstract-testcase.php
 
-# PHPUnit lost a few functions. Convert them over.
-# Migrated to being handled above..
-#grep assertInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertInternalType\( .(\w+).,~assert\1(~' %
-#grep assertNotInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertNotInternalType\( .(\w+).,~assertIsNot\1(~' %
+# PHPUnit removed a few functions. Convert them over.
+grep assertInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertInternalType\( .(\w+).,~assert\1(~' %
+grep assertNotInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertNotInternalType\( .(\w+).,~assertIsNot\1(~' %
+
+grep assertIsinteger tests/phpunit/ -rli | xargs -I% sed -i -E 's~\$this->assertIsinteger~\$this->assertIsInt~' %
+grep assertIsNotinteger tests/phpunit/ -rli | xargs -I% sed -i -E 's~\$this->assertIsNotinteger~\$this->assertIsNotInt~' %
 
 # assertContains - https://github.com/sebastianbergmann/phpunit/issues/3425
 # assertContains() no longer handles non-iterables, middleware it as WPassertContains().
 grep assertContains tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertContains~\$this->WPassertContains~' %
+grep assertNotContains tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertNotContains~\$this->WPassertNotContains~' %
+
+# Deprecated
+grep assertFileNotExists tests/phpunit/ -rli | xargs -I% sec -i 's~\$this->assertFileNotExists~\$this->assertFileDoesNotExist~' %
 
 # Output a diff of the modifications for reference.
 git diff .
