@@ -16,6 +16,9 @@ sed -i 's!phpunit:$!phpunit:\n    build:\n      context: .\n      dockerfile: ph
 
 pwd
 
+# Out bootstrap limits it to PHPUnit 7..
+sed -i 's/8.0/10.0/' tests/phpunit/includes/bootstrap.php
+
 # these functions must be return void as of PHPUnit8
 for void_function in setUpBeforeClass setUp assertPreConditions assertPostConditions tearDown tearDownAfterClass onNotSuccessfulTest
 do
