@@ -25,7 +25,7 @@ for void_function in setUpBeforeClass setUp assertPreConditions assertPostCondit
 do
 	echo Converting ${void_function}..
 	grep "function\s*${void_function}()\s*{" tests/phpunit/ -rli || echo No affected files.
-	grep "function\s*${void_function}()\s*{" tests/phpunit/ -rli | xargs -I% sed -i "s!function\s*${void_function}()\s*{!function ${void_function}(): void /* PHP8 transpose */ {!gi" %
+	grep "function\s*${void_function}()\s*{" tests/phpunit/ -rli | xargs -I% sed -i "s!function\s*${void_function}()\s*{!function ${void_function}(): void {!gi" %
 	echo
 done
 
@@ -52,6 +52,7 @@ echo '
 		$this->$method( $var );
 	}
 
+	// https://github.com/sebastianbergmann/phpunit/issues/3425
 	// cannot do assertContains() as it must match the parent syntax that requires $b to be iterable.
 	public function WPassertContains( $a, $b, $c = null ): void {
 		if ( is_scalar( $b ) ) {
@@ -61,9 +62,10 @@ echo '
 		}
 	}
 
-	// Avoid PHPUnit warnings.
-	public assertFileNotExists( string $file, string $message = '' ): void {
-		$this->assertFileDoesNotExist( $file, $message );
+	// Avoid PHPUnit warnings. Deprecated.
+	// https://github.com/sebastianbergmann/phpunit/issues/4077
+	public static function assertFileNotExists( string $file, string $message = '' ): void {
+		parent::assertFileDoesNotExist( $file, $message );
 	}
 
 }' >> tests/phpunit/includes/abstract-testcase.php.tmp
@@ -80,3 +82,6 @@ grep assertContains tests/phpunit/ -rli | xargs -I% sed -i 's~assertContains~WPa
 
 # Output a diff of the modifications for reference.
 git diff .
+
+# Lint check the modified files.
+git diff --name-only tests/phpunit/ | xargs -I% php -l %
