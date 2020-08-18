@@ -32,40 +32,40 @@ done
 # PHPUnit lost a few functions, stub them back in..
 cat tests/phpunit/includes/abstract-testcase.php | head -n-1 > tests/phpunit/includes/abstract-testcase.php.tmp
 echo '
-	public static function assertInternalType( $type, $var ): void {
+	public function assertInternalType( string $type, mixed $var ): void {
 		if ( "integer" === $type ) {
 			$type = "int";
 		}
 
 		$method = "assertIs$type";
 
-		$this->$method( $var );
+		static::$method( $var );
 	}
 
-	public static function assertNotInternalType( $type, $var ): void {
+	public function assertNotInternalType( string $type, mixed $var ): void {
 		if ( "integer" === $type ) {
 			$type = "int";
 		}
 
 		$method = "assertIsNot$type";
 
-		$this->$method( $var );
+		static::$method( $var );
 	}
 
 	// https://github.com/sebastianbergmann/phpunit/issues/3425
 	// cannot do assertContains() as it must match the parent syntax that requires $b to be iterable.
-	public function WPassertContains( $a, $b, $c = null ): void {
+	public static function WPassertContains( $a, $b, $c = null ): void {
 		if ( is_scalar( $b ) ) {
-			$this->assertStringContainsString( $a, $b, $c );
+			static::assertStringContainsString( $a, $b, $c );
 		} else {
-			$this->assertContains( $a, $b, $c );
+			static::assertContains( $a, $b, $c );
 		}
 	}
 
 	// Avoid PHPUnit warnings. Deprecated.
 	// https://github.com/sebastianbergmann/phpunit/issues/4077
-	public static function assertFileNotExists( string $file, string $message = '' ): void {
-		parent::assertFileDoesNotExist( $file, $message );
+	public static function assertFileNotExists( string $file, string $message = "" ): void {
+		static::assertFileDoesNotExist( $file, $message );
 	}
 
 }' >> tests/phpunit/includes/abstract-testcase.php.tmp
