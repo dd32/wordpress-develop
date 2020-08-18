@@ -3,8 +3,8 @@
 # Make a PHP8 compatible phpunit file.
 echo "FROM wordpressdevelop/phpunit:8.0-fpm
 
-# Use PHPUnit 8
-RUN curl -sL https://phar.phpunit.de/phpunit-8.phar > /usr/local/bin/phpunit && chmod +x /usr/local/bin/phpunit
+# Use PHPUnit 9
+RUN curl -sL https://phar.phpunit.de/phpunit-9.phar > /usr/local/bin/phpunit && chmod +x /usr/local/bin/phpunit
 " > php8.dockerFile
 
 # Use a PHP8 compatible PHPunit.
