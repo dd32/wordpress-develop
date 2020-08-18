@@ -28,9 +28,55 @@ do
 	echo
 done
 
+# PHPUnit lost a few functions, stub them back in..
+cat tests/phpunit/includes/abstract-testcase.php | head -n-1 > tests/phpunit/includes/abstract-testcase.php.tmp
+echo '
+	public static function assertInternalType( $type, $var ): void {
+		if ( "integer" == $type ) {
+			$type = "int";
+		}
+
+		$method = "assertIs$type";
+
+		parent::$method( $var );
+	}
+
+	public static function assertNotInternalType( $type, $var ): void {
+		if ( "integer" == $type ) {
+			$type = "int";
+		}
+
+		$method = "assertIsNot$type";
+
+		parent::$method( $var );
+	}
+
+	// cannot do assertContains() as it must match the parent syntax that requires $b to be iterable.
+	public function WPassertContains( $a, $b, $c = null ): void {
+		if ( is_scalar( $b ) ) {
+			self::assertStringContainsString( $a, $b, $c );
+		} else {
+			self::assertContains( $a, $b, $c = null );
+		}
+	}
+
+	// Avoid PHPUnit warnings.
+	public static assertFileNotExists( string $file, string $message = '' ): void {
+		self::assertFileDoesNotExist( $file, $message );
+	}
+
+}' >> tests/phpunit/includes/abstract-testcase.php.tmp
+cat tests/phpunit/includes/abstract-testcase.php.tmp > tests/phpunit/includes/abstract-testcase.php
+rm tests/phpunit/includes/abstract-testcase.php.tmp
+
 # PHPUnit lost a few functions. Convert them over.
-grep assertInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertInternalType\( .(.+).,~assert\1(~' %
-grep assertNotInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertNotInternalType\( .(.+).,~assertIsNot\1(~' %
+# Migrated to being handled above..
+#grep assertInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertInternalType\( .(\w+).,~assert\1(~' %
+#grep assertNotInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertNotInternalType\( .(\w+).,~assertIsNot\1(~' %
+
+# assertContains - https://github.com/sebastianbergmann/phpunit/issues/3425
+# assertContains() no longer handles non-iterables, middleware it as WPassertContains().
+grep assertContains tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertContains~WPassertContains~' %
 
 # Output a diff of the modifications for reference.
 git diff .
