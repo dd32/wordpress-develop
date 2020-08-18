@@ -33,8 +33,11 @@ done
 cat tests/phpunit/includes/abstract-testcase.php | head -n-1 > tests/phpunit/includes/abstract-testcase.php.tmp
 echo '
 
-	// https://github.com/sebastianbergmann/phpunit/issues/3425
-	// cannot do assertContains() as it must match the parent syntax that requires $b to be iterable.
+	/**
+	 * PHPUnits assertContains() used to handle a lot of use-cases, but as of PHPUnit 8 it only does arrays.
+	 * See https://github.com/sebastianbergmann/phpunit/issues/3425
+	 * Cannot just overload assertContains() as $b must be iterable..
+	 */
 	public static function WPassertContains( $a, $b, $c = "" ): void {
 		if ( is_scalar( $b ) ) {
 			static::assertStringContainsString( $a, $b, $c );
@@ -58,15 +61,18 @@ mv tests/phpunit/includes/abstract-testcase.php.tmp tests/phpunit/includes/abstr
 grep assertInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertInternalType\( .(\w)(\w+).,~assertIs\u\1\2(~' %
 grep assertNotInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertNotInternalType\( .(\w)(\w+).,~assertIsNot\u\1\2(~' %
 
+# It's assertIsInt & assertIsBool
 grep assertIsInteger tests/phpunit/ -rl | xargs -I% sed -i -E 's~\$this->assertIsInteger~\$this->assertIsInt~' %
 grep assertIsNotInteger tests/phpunit/ -rl | xargs -I% sed -i -E 's~\$this->assertIsNotInteger~\$this->assertIsNotInt~' %
 
-# assertContains - https://github.com/sebastianbergmann/phpunit/issues/3425
+grep assertIsBoolean tests/phpunit/ -rl | xargs -I% sed -i -E 's~\$this->assertIsBoolean~\$this->assertIsBool~' %
+grep assertIsNotBoolean tests/phpunit/ -rl | xargs -I% sed -i -E 's~\$this->assertIsNotBoolean~\$this->assertIsNotBool~' %
+
 # assertContains() no longer handles non-iterables, middleware it as WPassertContains().
 grep assertContains tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertContains~\$this->WPassertContains~' %
 grep assertNotContains tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertNotContains~\$this->WPassertNotContains~' %
 
-# Deprecated
+# Deprecated - Direct Replacements.
 grep assertFileNotExists tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertFileNotExists~\$this->assertFileDoesNotExist~' %
 
 # Output a diff of the modifications for reference.
