@@ -67,11 +67,11 @@ before_script:
 - |
   if [[ "$WP_TRAVISCI" == "test:e2e" ]] || [[ "$WP_TRAVISCI" == "test:php" ]]; then
     npm run env:start
-    npm run build
     docker-compose run --rm mysql mysql --version
     docker-compose run --rm php php --version
     docker-compose run --rm php php -m
     docker-compose run --rm phpunit phpunit --version
+    npm run build
   fi
 - |
   if [[ "$LOCAL_PHP_MEMCACHED" == "true" ]]; then
