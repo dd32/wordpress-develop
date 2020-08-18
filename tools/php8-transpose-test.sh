@@ -67,7 +67,7 @@ grep assertContains tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertCont
 grep assertNotContains tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertNotContains~\$this->WPassertNotContains~' %
 
 # Deprecated
-grep assertFileNotExists tests/phpunit/ -rli | xargs -I% sec -i 's~\$this->assertFileNotExists~\$this->assertFileDoesNotExist~' %
+grep assertFileNotExists tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertFileNotExists~\$this->assertFileDoesNotExist~' %
 
 # Output a diff of the modifications for reference.
 git diff .
