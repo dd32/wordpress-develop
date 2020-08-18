@@ -78,7 +78,7 @@ mv tests/phpunit/includes/abstract-testcase.php.tmp tests/phpunit/includes/abstr
 
 # assertContains - https://github.com/sebastianbergmann/phpunit/issues/3425
 # assertContains() no longer handles non-iterables, middleware it as WPassertContains().
-grep assertContains tests/phpunit/ -rli | xargs -I% sed -i 's~assertContains~WPassertContains~' %
+grep assertContains tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertContains~\$this->WPassertContains~' %
 
 # Output a diff of the modifications for reference.
 git diff .
