@@ -18,6 +18,7 @@ sed -i 's/8.0/10.0/' tests/phpunit/includes/bootstrap.php
 
 # Make the needed syntax alterations to the unit tests.
 # This would ideally be done not using regex, but they're so simple statements that it's not too horrible.
+# I looked at using https://github.com/rectorphp/rector but that won't handle our assertContains changes needed.
 
 # these functions must be return void as of PHPUnit8
 for void_function in setUpBeforeClass setUp assertPreConditions assertPostConditions tearDown tearDownAfterClass onNotSuccessfulTest
@@ -32,42 +33,41 @@ done
 cat tests/phpunit/includes/abstract-testcase.php | head -n-1 > tests/phpunit/includes/abstract-testcase.php.tmp
 echo '
 	public static function assertInternalType( $type, $var ): void {
-		if ( "integer" == $type ) {
+		if ( "integer" === $type ) {
 			$type = "int";
 		}
 
 		$method = "assertIs$type";
 
-		parent::$method( $var );
+		$this->$method( $var );
 	}
 
 	public static function assertNotInternalType( $type, $var ): void {
-		if ( "integer" == $type ) {
+		if ( "integer" === $type ) {
 			$type = "int";
 		}
 
 		$method = "assertIsNot$type";
 
-		parent::$method( $var );
+		$this->$method( $var );
 	}
 
 	// cannot do assertContains() as it must match the parent syntax that requires $b to be iterable.
 	public function WPassertContains( $a, $b, $c = null ): void {
 		if ( is_scalar( $b ) ) {
-			self::assertStringContainsString( $a, $b, $c );
+			$this->assertStringContainsString( $a, $b, $c );
 		} else {
-			self::assertContains( $a, $b, $c = null );
+			$this->assertContains( $a, $b, $c );
 		}
 	}
 
 	// Avoid PHPUnit warnings.
-	public static assertFileNotExists( string $file, string $message = '' ): void {
-		self::assertFileDoesNotExist( $file, $message );
+	public assertFileNotExists( string $file, string $message = '' ): void {
+		$this->assertFileDoesNotExist( $file, $message );
 	}
 
 }' >> tests/phpunit/includes/abstract-testcase.php.tmp
-cat tests/phpunit/includes/abstract-testcase.php.tmp > tests/phpunit/includes/abstract-testcase.php
-rm tests/phpunit/includes/abstract-testcase.php.tmp
+mv tests/phpunit/includes/abstract-testcase.php.tmp tests/phpunit/includes/abstract-testcase.php
 
 # PHPUnit lost a few functions. Convert them over.
 # Migrated to being handled above..
@@ -76,7 +76,7 @@ rm tests/phpunit/includes/abstract-testcase.php.tmp
 
 # assertContains - https://github.com/sebastianbergmann/phpunit/issues/3425
 # assertContains() no longer handles non-iterables, middleware it as WPassertContains().
-grep assertContains tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertContains~WPassertContains~' %
+grep assertContains tests/phpunit/ -rli | xargs -I% sed -i 's~assertContains~WPassertContains~' %
 
 # Output a diff of the modifications for reference.
 git diff .
