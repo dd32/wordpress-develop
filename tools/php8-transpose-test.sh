@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# The docker changes shouldn't be needed, https://github.com/WordPress/wpdev-docker-images/blob/master/update.php#L185 needs updating.
+# The docker changes need to be done upstream, see: https://github.com/WordPress/wpdev-docker-images/pull/33
 
 # Make a PHP8 PHPUnit 9 dockerfile.
 echo "FROM wordpressdevelop/phpunit:8.0-fpm
@@ -13,12 +13,11 @@ RUN curl -sL https://phar.phpunit.de/phpunit-9.phar > /usr/local/bin/phpunit && 
 sed -i 's!phpunit:$!phpunit:\n    build:\n      context: .\n      dockerfile: php8.dockerFile!i' docker-compose.yml
 
 
-# Our bootstrap limits it to PHPUnit 7.. hacky but understandable from core.
+# Our bootstrap limits it to PHPUnit 7.. let's override that.
 sed -i 's/8.0/10.0/' tests/phpunit/includes/bootstrap.php
 
 # Make the needed syntax alterations to the unit tests.
-# This would ideally be done not using regex, but they're so simple statements that it's not too horrible.
-# I looked at using https://github.com/rectorphp/rector but that won't handle our assertContains changes needed.
+# Ignore the hacky search-replace for now, it works mostly to get something running.
 
 # these functions must be return void as of PHPUnit8
 for void_function in setUpBeforeClass setUp assertPreConditions assertPostConditions tearDown tearDownAfterClass onNotSuccessfulTest
@@ -29,7 +28,8 @@ do
 	echo
 done
 
-# PHPUnit lost a few functions, stub them back in..
+# PHPUnit has removed/deprecated a few functions.
+# This is a back-compat stub for them until all cases are updated.
 cat tests/phpunit/includes/abstract-testcase.php | head -n-1 > tests/phpunit/includes/abstract-testcase.php.tmp
 echo '
 
@@ -58,8 +58,8 @@ echo '
 mv tests/phpunit/includes/abstract-testcase.php.tmp tests/phpunit/includes/abstract-testcase.php
 
 # PHPUnit removed a few functions. Convert them over.
-grep assertInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertInternalType\( .(\w)(\w+).,~assertIs\u\1\2(~' %
-grep assertNotInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertNotInternalType\( .(\w)(\w+).,~assertIsNot\u\1\2(~' %
+grep assertInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertInternalType\( '\''(\w)(\w+)'\'',~assertIs\u\1\2(~' %
+grep assertNotInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertNotInternalType\( '\''(\w)(\w+)'\'',~assertIsNot\u\1\2(~' %
 
 # It's assertIsInt & assertIsBool
 grep assertIsInteger tests/phpunit/ -rl | xargs -I% sed -i -E 's~\$this->assertIsInteger~\$this->assertIsInt~' %
@@ -68,7 +68,7 @@ grep assertIsNotInteger tests/phpunit/ -rl | xargs -I% sed -i -E 's~\$this->asse
 grep assertIsBoolean tests/phpunit/ -rl | xargs -I% sed -i -E 's~\$this->assertIsBoolean~\$this->assertIsBool~' %
 grep assertIsNotBoolean tests/phpunit/ -rl | xargs -I% sed -i -E 's~\$this->assertIsNotBoolean~\$this->assertIsNotBool~' %
 
-# assertContains() no longer handles non-iterables, middleware it as WPassertContains().
+# assertContains() no longer handles non-iterables, middleware it as WPassertContains() fow now.
 grep assertContains tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertContains~\$this->WPassertContains~' %
 grep assertNotContains tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertNotContains~\$this->WPassertNotContains~' %
 
