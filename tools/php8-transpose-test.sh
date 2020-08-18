@@ -55,7 +55,7 @@ echo '
 mv tests/phpunit/includes/abstract-testcase.php.tmp tests/phpunit/includes/abstract-testcase.php
 
 # PHPUnit removed a few functions. Convert them over.
-grep assertInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertInternalType\( .(\w+).,~assert\1(~' %
+grep assertInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertInternalType\( .(\w+).,~assertIs\1(~' %
 grep assertNotInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertNotInternalType\( .(\w+).,~assertIsNot\1(~' %
 
 grep assertIsinteger tests/phpunit/ -rli | xargs -I% sed -i -E 's~\$this->assertIsinteger~\$this->assertIsInt~' %
