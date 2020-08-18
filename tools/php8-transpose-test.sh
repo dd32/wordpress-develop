@@ -55,11 +55,11 @@ echo '
 mv tests/phpunit/includes/abstract-testcase.php.tmp tests/phpunit/includes/abstract-testcase.php
 
 # PHPUnit removed a few functions. Convert them over.
-grep assertInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertInternalType\( .(\w+).,~assertIs\1(~' %
-grep assertNotInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertNotInternalType\( .(\w+).,~assertIsNot\1(~' %
+grep assertInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertInternalType\( .(\w)(\w+).,~assertIs\u\1\2(~' %
+grep assertNotInternalType tests/phpunit/ -rli | xargs -I% sed -i -E 's~assertNotInternalType\( .(\w)(\w+).,~assertIsNot\u\1\2(~' %
 
-grep assertIsinteger tests/phpunit/ -rli | xargs -I% sed -i -E 's~\$this->assertIsinteger~\$this->assertIsInt~' %
-grep assertIsNotinteger tests/phpunit/ -rli | xargs -I% sed -i -E 's~\$this->assertIsNotinteger~\$this->assertIsNotInt~' %
+grep assertIsInteger tests/phpunit/ -rl | xargs -I% sed -i -E 's~\$this->assertIsInteger~\$this->assertIsInt~' %
+grep assertIsNotInteger tests/phpunit/ -rl | xargs -I% sed -i -E 's~\$this->assertIsNotInteger~\$this->assertIsNotInt~' %
 
 # assertContains - https://github.com/sebastianbergmann/phpunit/issues/3425
 # assertContains() no longer handles non-iterables, middleware it as WPassertContains().
