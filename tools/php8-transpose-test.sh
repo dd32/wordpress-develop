@@ -54,7 +54,7 @@ echo '
 
 	// https://github.com/sebastianbergmann/phpunit/issues/3425
 	// cannot do assertContains() as it must match the parent syntax that requires $b to be iterable.
-	public static function WPassertContains( $a, $b, $c = null ): void {
+	public static function WPassertContains( $a, $b, $c = "" ): void {
 		if ( is_scalar( $b ) ) {
 			static::assertStringContainsString( $a, $b, $c );
 		} else {
