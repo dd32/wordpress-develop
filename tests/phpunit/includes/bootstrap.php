@@ -3,13 +3,6 @@
  * Installs WordPress for running the tests and loads WordPress and the test libraries
  */
 
-/**
- * Compatibility with PHPUnit 6+
- */
-if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
-	require_once __DIR__ . '/phpunit6/compat.php';
-}
-
 if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
 	$config_file_path = WP_TESTS_CONFIG_FILE_PATH;
 } else {
@@ -39,12 +32,12 @@ require_once __DIR__ . '/functions.php';
 
 $phpunit_version = tests_get_phpunit_version();
 
-if ( version_compare( $phpunit_version, '5.4', '<' ) || version_compare( $phpunit_version, '8.0', '>=' ) ) {
+if ( version_compare( $phpunit_version, '5.4', '<' ) || version_compare( $phpunit_version, '10.0', '>=' ) ) {
 	printf(
-		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.4 and is currently only compatible with PHPUnit up to 7.x.\n",
+		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.4 and is currently only compatible with PHPUnit up to 9.x.\n",
 		$phpunit_version
 	);
-	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
+	echo "Please use the latest PHPUnit version from the 9.x branch.\n";
 	exit( 1 );
 }
 
@@ -160,12 +153,7 @@ require_once ABSPATH . '/wp-settings.php';
 // Delete any default posts & related data.
 _delete_all_posts();
 
-if ( version_compare( tests_get_phpunit_version(), '7.0', '>=' ) ) {
-	require __DIR__ . '/phpunit7/testcase.php';
-} else {
-	require __DIR__ . '/testcase.php';
-}
-
+require __DIR__ . '/testcase.php';
 require __DIR__ . '/testcase-rest-api.php';
 require __DIR__ . '/testcase-rest-controller.php';
 require __DIR__ . '/testcase-rest-post-type-controller.php';

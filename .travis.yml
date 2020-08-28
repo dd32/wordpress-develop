@@ -37,6 +37,8 @@ jobs:
     name: "PHP Compatibility Check"
   - env: WP_TRAVISCI=travis:js WP_INSTALL=false PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=
     name: JS Tests
+  - env: LOCAL_PHP=8.0-fpm WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 8.0"
   - env: LOCAL_PHP=7.4-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 7.4"
   - env: LOCAL_PHP=7.3-fpm WP_TRAVISCI=test:php
@@ -47,12 +49,10 @@ jobs:
     name: "PHPUnit Tests: PHP 7.2"
   - env: LOCAL_PHP=7.1-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 7.1"
-  - env: LOCAL_PHP=7.0-fpm WP_TEST_REPORTER=true WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=7.0-fpm WP_TEST_REPORTER=true WP_TRAVISCI=test:php OLD_PHP=true
     name: "PHPUnit Tests: PHP 7.0"
-  - env: LOCAL_PHP=5.6-fpm WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=5.6-fpm WP_TRAVISCI=test:php OLD_PHP=true
     name: "PHPUnit Tests: PHP 5.6"
-  - env: LOCAL_PHP=8.0-fpm WP_TRAVISCI=test:php
-    name: "PHPUnit Tests: PHP 8.0"
   allow_failures:
   - env: LOCAL_PHP=8.0-fpm WP_TRAVISCI=test:php
   fast_finish: true
@@ -61,6 +61,10 @@ before_install:
 - |
   if [[ "$WP_TRAVISCI" == "test:php" ]]; then
       travis_retry svn checkout -r 2170172 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
+      if [[ "$OLD_PHP" == "true" ]]; then
+        # PHP 5.6 & 7.0 don't support return void type hinting, remove it for compatibility with PHPUnit 9
+        grep "()\s*:\s*void\s*{" tests/phpunit/ -rli | xargs -I filename sed -i "s~()\s*:\s*void\s*{~() {~i" filename
+      fi
   fi
 - |
   sudo rm /usr/local/bin/docker-compose
