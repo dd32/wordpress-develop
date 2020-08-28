@@ -25,10 +25,9 @@ class Tests_Locale extends WP_UnitTestCase {
 		$this->assertEquals( __( 'Saturday' ), $this->locale->get_weekday( 6 ) );
 	}
 
-	/**
-	 * @expectedException PHPUnit_Framework_Error_Notice
-	 */
 	public function test_get_weekday_undefined_index() {
+		$this->expectNotice();
+
 		$this->locale->get_weekday( 7 );
 	}
 
