@@ -696,4 +696,19 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertSame( 'tax1', get_query_var( 'taxonomy' ) );
 		$this->assertSame( 'term1', get_query_var( 'term' ) );
 	}
+
+	/**
+	 * @ticket dd32
+	 */
+	public function test_query_singular_notices() {
+		$q = new WP_Query(
+			array(
+				'pagename' => 'non-existant-page'
+			)
+		);
+
+		$this->assertEquals( 0, $q->post_count );
+
+		$this->assertFalse( $q->is_singular( 'page' ) );
+	}
 }
