@@ -698,7 +698,7 @@ class Tests_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket dd32
+	 * @ticket 29660
 	 */
 	public function test_query_singular_404_doesnt_notice() {
 		$q = new WP_Query(
@@ -718,7 +718,7 @@ class Tests_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket dd32
+	 * @ticket 29660
 	 */
 	public function test_query_single_404_doesnt_notice() {
 		$q = new WP_Query(
