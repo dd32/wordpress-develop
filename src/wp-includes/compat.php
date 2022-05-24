@@ -309,6 +309,7 @@ if ( ! function_exists( 'hash_equals' ) ) :
 	 * I.e. when PHP 7.4.0 becomes the minimum requirement, this polyfill
 	 * can be safely removed.
 	 *
+	 * @ignore
 	 * @since 3.9.2
 	 *
 	 * @param string $known_string Expected string.
@@ -349,6 +350,7 @@ if ( ! function_exists( 'is_countable' ) ) {
 	 * Verify that the content of a variable is an array or an object
 	 * implementing the Countable interface.
 	 *
+	 * @ignore
 	 * @since 4.9.6
 	 *
 	 * @param mixed $value The value to check.
@@ -370,6 +372,7 @@ if ( ! function_exists( 'is_iterable' ) ) {
 	 * Verify that the content of a variable is an array or an object
 	 * implementing the Traversable interface.
 	 *
+	 * @ignore
 	 * @since 4.9.6
 	 *
 	 * @param mixed $value The value to check.
@@ -387,6 +390,7 @@ if ( ! function_exists( 'array_key_first' ) ) {
 	 * Get the first key of the given array without affecting
 	 * the internal array pointer.
 	 *
+	 * @ignore
 	 * @since 5.9.0
 	 *
 	 * @param array $array An array.
@@ -407,6 +411,7 @@ if ( ! function_exists( 'array_key_last' ) ) {
 	 * Get the last key of the given array without affecting the
 	 * internal array pointer.
 	 *
+	 * @ignore
 	 * @since 5.9.0
 	 *
 	 * @param array $array An array.
@@ -431,6 +436,7 @@ if ( ! function_exists( 'str_contains' ) ) {
 	 * Performs a case-sensitive check indicating if needle is
 	 * contained in haystack.
 	 *
+	 * @ignore
 	 * @since 5.9.0
 	 *
 	 * @param string $haystack The string to search in.
@@ -449,6 +455,7 @@ if ( ! function_exists( 'str_starts_with' ) ) {
 	 * Performs a case-sensitive check indicating if
 	 * the haystack begins with needle.
 	 *
+	 * @ignore
 	 * @since 5.9.0
 	 *
 	 * @param string $haystack The string to search in.
@@ -471,6 +478,7 @@ if ( ! function_exists( 'str_ends_with' ) ) {
 	 * Performs a case-sensitive check indicating if
 	 * the haystack ends with needle.
 	 *
+	 * @ignore
 	 * @since 5.9.0
 	 *
 	 * @param string $haystack The string to search in.
