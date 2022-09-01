@@ -4852,6 +4852,11 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		$rpc = new IXR_Client( set_url_scheme( "http://{$domain}{$path}" ) );
 		$rpc->query( 'wp.getUsersBlogs', $args[1], $args[2] );
+
+		if ( $rpc->isError() ) {
+			return new IXR_Error( $rpc->getErrorCode(), $rpc->getErrorMessage() );
+		}
+
 		$blogs = $rpc->getResponse();
 
 		if ( isset( $blogs['faultCode'] ) ) {
