@@ -38,6 +38,8 @@ class WP {
 	/**
 	 * Query variables for setting up the WordPress Query Loop.
 	 *
+	 * NOTE: This holds slashed data.
+	 *
 	 * @since 2.0.0
 	 * @var array
 	 */
@@ -829,4 +831,112 @@ class WP {
 		 */
 		do_action_ref_array( 'wp', array( &$this ) );
 	}
+
+	/**
+	 * Fetch an unslashed value from $_GET with optional type validation & default values.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string|array       $key     The key, or path, of the value to fetch.
+	 * @param string|array|false $types   The type(s) of the value to accept. Default false.
+	 * @param mixed              $default The value to return if not set, or fails the type validation. Default null.
+	 * @return mixed The value defined by $key in $_GET if set and valid, otherwise $default.
+	 */
+	public static function get( $key, $types = false, $default = null ) {
+		return self::_fetch_from_global( $_GET, $key, $types, $default );
+	}
+
+	/**
+	 * Fetch an unslashed value from $_POST with optional type validation & default values.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string|array       $key     The key, or path, of the value to fetch.
+	 * @param string|array|false $types   The type(s) of the value to accept. Default false.
+	 * @param mixed              $default The value to return if not set, or fails the type validation. Default null.
+	 * @return mixed The value defined by $key in $_POST if set and valid, otherwise $default.
+	 */
+	public static function post( $key, $types = false, $default = null ) {
+		return self::_fetch_from_global( $_POST, $key, $types, $default );
+	}
+
+	/**
+	 * Fetch an unslashed value from $_REQUEST with optional type validation & default values.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string|array       $key     The key, or path, of the value to fetch.
+	 * @param string|array|false $types   The type(s) of the value to accept. Default false.
+	 * @param mixed              $default The value to return if not set, or fails the type validation. Default null.
+	 * @return mixed The value defined by $key in $_REQUEST if set and valid, otherwise $default.
+	 */
+	public static function request( $key, $types = false, $default = null ) {
+		return self::_fetch_from_global( $_REQUEST, $key, $types, $default );
+	}
+
+	/**
+	 * Fetch an unslashed value from a superglobal by the defined key / path, with optional type validation and default value.
+	 *
+	 * @since 6.5.0
+	 * @access private
+	 *
+	 * @param array              $global  The superglobal to fetch from.
+	 * @param string|array       $key     The key, or path, of the value to fetch.
+	 * @param string|array|false $types   The type(s) of the value to accept. Default false.
+	 * @param mixed              $default The value to return if not set, or fails the type validation. Default null.
+	 * @return mixed The value defined by $key in $global if set and valid, otherwise $default.
+	 */
+	protected static function _fetch_from_global( $global, $key, $types = false, $default = null ) {
+		if ( is_array( $key ) ) {
+			$value = wp_unslash( _wp_array_get( $global, $key ) );
+		} elseif ( isset( $global[ $key ] ) ) {
+			$value = wp_unslash( $global[ $key ] );
+		}
+
+		/*
+		 * Validate the type of the $value is expected.
+		 *
+		 * This is a quick hack to add basic validation, ideally this would support a schema.
+		 */
+		if ( $types && isset( $value ) ) {
+			$best_type_of_value = rest_get_best_type_for_value( $value, (array) $types );
+			if ( ! $best_type_of_value ) {
+				unset( $value );
+			}
+			/*
+			 * rest_is_array() will be called for arrays, and if the value passed is a string,
+			 * it'll convert the string to an array..
+			 */
+			elseif ( 'array' === $best_type_of_value && ! is_array( $value ) ) {
+				unset( $value );
+			}
+		}
+
+		if ( ! isset( $value ) ) {
+			return $default;
+		}
+
+		return $value;
+	}
+
 }
+
+add_action( 'template_redirect', function() {
+	if ( ! WP::get( 'testing' ) ) {
+		return;
+	}
+
+	global $wp;
+	header( 'Content-Type: text/plain' );
+
+	var_dump( WP::get( 's' ), $wp );
+
+	var_dump( WP::get( [ 'key', 'type' ], 'string', 'default-depth-value' ) );
+
+	var_dump( WP::get( [ 'key', 'foo' ], false, 'default-depth-value' ) );
+
+	var_dump( WP::request( 'key', [ 'array' ], 'default-value' ) );
+
+
+	die();
+} );
