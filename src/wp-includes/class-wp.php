@@ -926,17 +926,19 @@ add_action( 'template_redirect', function() {
 		return;
 	}
 
-	global $wp;
 	header( 'Content-Type: text/plain' );
 
-	var_dump( WP::get( 's' ), $wp );
+	// ?s=....
+	var_dump( WP::get( 's' ) );
 
+	// ?key[type]=string-here, returns string-here. But not ?key=string, that's default-depth-value
 	var_dump( WP::get( [ 'key', 'type' ], 'string', 'default-depth-value' ) );
 
+	// ?key[foo][]=string-here or ?key[foo]=string-here, returns string-here or [ string-here ]
 	var_dump( WP::get( [ 'key', 'foo' ], false, 'default-depth-value' ) );
 
+	// ?key[]=..., returns [ ... ] but NOT ?key=string for that it's default-value.
 	var_dump( WP::request( 'key', [ 'array' ], 'default-value' ) );
-
 
 	die();
 } );
