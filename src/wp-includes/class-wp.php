@@ -835,7 +835,7 @@ class WP {
 	/**
 	 * Fetch an unslashed value from $_GET with optional type validation & default values.
 	 *
-	 * @since 6.5.0
+	 * @since next.stable
 	 *
 	 * @param string|array       $key     The key, or path, of the value to fetch.
 	 * @param string|array|false $types   The type(s) of the value to accept. Default false.
@@ -849,7 +849,7 @@ class WP {
 	/**
 	 * Fetch an unslashed value from $_POST with optional type validation & default values.
 	 *
-	 * @since 6.5.0
+	 * @since next.stable
 	 *
 	 * @param string|array       $key     The key, or path, of the value to fetch.
 	 * @param string|array|false $types   The type(s) of the value to accept. Default false.
@@ -863,7 +863,7 @@ class WP {
 	/**
 	 * Fetch an unslashed value from $_REQUEST with optional type validation & default values.
 	 *
-	 * @since 6.5.0
+	 * @since next.stable
 	 *
 	 * @param string|array       $key     The key, or path, of the value to fetch.
 	 * @param string|array|false $types   The type(s) of the value to accept. Default false.
@@ -877,7 +877,7 @@ class WP {
 	/**
 	 * Fetch an unslashed value from a superglobal by the defined key / path, with optional type validation and default value.
 	 *
-	 * @since 6.5.0
+	 * @since next.stable
 	 * @access private
 	 *
 	 * @param array              $global  The superglobal to fetch from.
@@ -915,6 +915,7 @@ class WP {
 			if ( ! $best_type_of_value ) {
 				unset( $value );
 			}
+
 			/*
 			 * rest_is_array() will be called for arrays, and if the value passed is a string,
 			 * it'll convert the string to an array..
