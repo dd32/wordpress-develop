@@ -887,6 +887,18 @@ class WP {
 	 * @return mixed The value defined by $key in $global if set and valid, otherwise $default.
 	 */
 	protected static function _fetch_from_global( $global, $key, $types = false, $default = null ) {
+		if ( is_string( $key ) && ! isset( $global[ $key ] ) && str_contains( $key, '[' ) ) {
+			// Split key[var] into [ 'key', 'var' ]
+			parse_str( $key, $pieces );
+			if ( $pieces ) {
+				$key = array();
+				while ( $pieces && $_key = key( $pieces ) ) {
+					$key[]  = $_key;
+					$pieces = $pieces[ $_key ];
+				}
+			}
+		}
+
 		if ( is_array( $key ) ) {
 			$value = wp_unslash( _wp_array_get( $global, $key ) );
 		} elseif ( isset( $global[ $key ] ) ) {
@@ -931,11 +943,16 @@ add_action( 'template_redirect', function() {
 	// ?s=....
 	var_dump( WP::get( 's' ) );
 
-	// ?key[type]=string-here, returns string-here. But not ?key=string, that's default-depth-value
-	var_dump( WP::get( [ 'key', 'type' ], 'string', 'default-depth-value' ) );
+	// ?one[two]=string-here, returns string-here. But not ?one=string, that's default-value
+	var_dump( WP::get( 'one[two]', 'string', 'default-value' ) );
+	// or expressed as an array:
+	var_dump( WP::get( [ 'one', 'two' ], 'string', 'default-value' ) );
+
+	// ?one[two][three]=string-here, returns string-here. But not ?one=string, that's default-value
+	var_dump( WP::get( 'one[two][three]', 'string', 'default-value' ) );
 
 	// ?key[foo][]=string-here or ?key[foo]=string-here, returns string-here or [ string-here ]
-	var_dump( WP::get( [ 'key', 'foo' ], false, 'default-depth-value' ) );
+	var_dump( WP::get( 'key[foo]', false, 'default-value' ) );
 
 	// ?key[]=..., returns [ ... ] but NOT ?key=string for that it's default-value.
 	var_dump( WP::request( 'key', [ 'array' ], 'default-value' ) );
