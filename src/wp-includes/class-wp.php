@@ -892,9 +892,15 @@ class WP {
 			parse_str( $key, $pieces );
 			if ( $pieces ) {
 				$key = array();
-				while ( $pieces && $_key = key( $pieces ) ) {
+				while ( $_key = key( $pieces ) ) {
 					$key[]  = $_key;
 					$pieces = $pieces[ $_key ];
+					if ( ! is_array( $pieces ) ) {
+						if ( is_null( $default ) ) {
+							$default = $pieces;
+						}
+						break;
+					}
 				}
 			}
 		}
@@ -941,22 +947,28 @@ add_action( 'template_redirect', function() {
 
 	header( 'Content-Type: text/plain' );
 
-	// ?s=....
+	// ?s=.... no validation.
 	var_dump( WP::get( 's' ) );
 
-	// ?one[two]=string-here, returns string-here. But not ?one=string, that's default-value
-	var_dump( WP::get( 'one[two]', 'string', 'default-value' ) );
+	// fetch the final value from ?one[two]=string-here as 'string-here'
+	// A request such as ?one=string would fail and return 'default-value'
+	var_dump( WP::get( 'one[two]=three', 'string', 'default-value' ) );
 	// or expressed as an array:
 	var_dump( WP::get( [ 'one', 'two' ], 'string', 'default-value' ) );
 
-	// ?one[two][three]=string-here, returns string-here. But not ?one=string, that's default-value
+	// Specify a multi-level deep string-only value.
 	var_dump( WP::get( 'one[two][three]', 'string', 'default-value' ) );
 
-	// ?key[foo][]=string-here or ?key[foo]=string-here, returns string-here or [ string-here ]
-	var_dump( WP::get( 'key[foo]', false, 'default-value' ) );
+	// Specify a default value as part of the getter:
+	var_dump( WP::get( 'one[two][three]=default-here', 'string' ) );
 
-	// ?key[]=..., returns [ ... ] but NOT ?key=string for that it's default-value.
-	var_dump( WP::request( 'key', [ 'array' ], 'default-value' ) );
+	// The type can be set to false, to not perform any sanitization.
+	// ?one[two][]=three would return [ three ], while ?one[two]=three would return 'three'
+	var_dump( WP::get( 'one[two]', false ) );
+
+	// Specify an array of types, which happens to be an array.
+	// ?one[]=two&one[]=three would return [ two, three ], but ?one=string-value would return the default.
+	var_dump( WP::request( 'one', [ 'array' ], [ 'default-value-here' ] ) );
 
 	die();
 } );
