@@ -535,6 +535,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				);
 			}
 
+			// Input errors
+			if (
+				$term->get_error_message( 'empty_term_name' ) ||
+				$term->get_error_message( 'invalid_term_name' )
+			) {
+				$term->add_data( array( 'status'  => 400 ) );
+			}
+			
 			return $term;
 		}
 
