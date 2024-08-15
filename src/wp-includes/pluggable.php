@@ -1090,6 +1090,9 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 			return;
 		}
 
+		$_COOKIE[ $auth_cookie_name ] = $auth_cookie;
+		$_COOKIE[ LOGGED_IN_COOKIE ]  = $auth_cookie;
+
 		setcookie( $auth_cookie_name, $auth_cookie, $expire, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN, $secure, true );
 		setcookie( $auth_cookie_name, $auth_cookie, $expire, ADMIN_COOKIE_PATH, COOKIE_DOMAIN, $secure, true );
 		setcookie( LOGGED_IN_COOKIE, $logged_in_cookie, $expire, COOKIEPATH, COOKIE_DOMAIN, $secure_logged_in_cookie, true );
@@ -1125,10 +1128,19 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		setcookie( SECURE_AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN );
 		setcookie( LOGGED_IN_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
 		setcookie( LOGGED_IN_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
+		unset(
+			$_COOKIE[ AUTH_COOKIE ],
+			$_COOKIE[ SECURE_AUTH_COOKIE ],
+			$_COOKIE[ LOGGED_IN_COOKIE ]
+		);
 
 		// Settings cookies.
 		setcookie( 'wp-settings-' . get_current_user_id(), ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH );
 		setcookie( 'wp-settings-time-' . get_current_user_id(), ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH );
+		unset(
+			$_COOKIE[ 'wp-settings-' . get_current_user_id() ],
+			$_COOKIE[ 'wp-settings-time-' . get_current_user_id() ]
+		);
 
 		// Old cookies.
 		setcookie( AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
@@ -1141,9 +1153,14 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		setcookie( PASS_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
 		setcookie( USER_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
 		setcookie( PASS_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
+		unset(
+			$_COOKIE[ USER_COOKIE ],
+			$_COOKIE[ PASS_COOKIE ]
+		);
 
 		// Post password cookie.
 		setcookie( 'wp-postpass_' . COOKIEHASH, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
+		unset( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] );
 	}
 endif;
 
