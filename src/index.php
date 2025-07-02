@@ -20,6 +20,8 @@ if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
 	return;
 }
 
+// Just a change in a branch without a pr
+
 define( 'WPINC', 'wp-includes' );
 require_once ABSPATH . WPINC . '/version.php';
 require_once ABSPATH . WPINC . '/compat.php';
