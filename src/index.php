@@ -20,6 +20,8 @@ if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
 	return;
 }
 
+// This is just a change to prove a point.
+
 define( 'WPINC', 'wp-includes' );
 require_once ABSPATH . WPINC . '/version.php';
 require_once ABSPATH . WPINC . '/compat.php';
