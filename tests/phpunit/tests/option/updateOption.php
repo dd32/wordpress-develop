@@ -220,6 +220,38 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that updating an option works, even when the DB is out of sync with the object cache.
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_db_out_of_sync_with_object_cache() {
+		global $wpdb;
+
+		// Set the option to a known value.
+		update_option( 'test_option', 'initial_value' );
+		$this->assertSame( 'initial_value', get_option( 'test_option' ) );
+
+		/*
+		 * Update the database directly to a future value.
+		 * This simulates an update_option() occuring on another page load, which successfully updated
+		 * the database, but whose object cache update was clobbered by another.
+		 */
+		$wpdb->update(
+			$wpdb->options,
+			array( 'option_value' => 'future_value' ),
+			array( 'option_name'  => 'test_option' )
+		);
+
+		// Validate that the cache on this request doesn't know about this.
+		$this->assertNotSame( 'future_value', get_option( 'test_option' ) );
+
+		// Update the option to the new value, and verify it worked.
+		$updated = update_option( 'test_option', 'future_value' );
+		$this->assertTrue( $updated );
+		$this->assertSame( 'future_value', get_option( 'test_option' ) );
+	}
+
+	/**
 	 * `add_filter()` callback for test_should_respect_default_option_filter_when_option_does_not_yet_exist_in_database().
 	 */
 	public function __return_foo() {
