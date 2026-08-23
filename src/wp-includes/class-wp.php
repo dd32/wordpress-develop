@@ -837,4 +837,57 @@ class WP {
 		 */
 		do_action_ref_array( 'wp', array( &$this ) );
 	}
+
+	/**
+	 * Retrieve a value from $_REQUEST according to a $path and/or $schama.
+	 */
+	public static function request( $path, $default = null, $schema = false ) {
+		return self::_superglobal_access_helper( '_REQUEST', $path, $default, $schema );
+	}
+
+	/**
+	 * Retrieve a value from $_GET according to a $path and/or $schama.
+	 */
+	public static function get( $path, $default = null, $schema = false ) {
+		return self::_superglobal_access_helper( '_GET', $path, $default, $schema );
+	}
+
+	/**
+	 * Retrieve a value from $_POST according to a $path and/or $schama.
+	 */
+	public static function post( $path, $default = null, $schema = false ) {
+		return self::_superglobal_access_helper( '_POST', $path, $default, $schema );
+	}
+
+	/**
+	 *
+	 * @param string       $var     The global to access.
+	 * @param string|array $path    The path to the value to fetch. See _wp_array_get().
+	 * @param mixed|null   $default The default value if $path is not set.
+	 * @param string|arrau $schema  The primitive type of the value to return, or a Schema defining the value of the item. See rest_sanitize_value_from_schema().
+	 * @return mixed|WP_Error The request value, and if a $schema is passed, the sanitized value or a WP_Error instance if the value cannot be safely sanitized.
+	 */
+	protected static function _superglobal_access_helper( $var, $path, $default = null, $schema = false ) {
+		if ( ! isset( $GLOBALS[ $var ] ) ) {
+			return $default;
+		}
+
+		$path  = is_array( $path ) ? $path : array( $path );
+		$value = _wp_array_get( $GLOBALS[ $var ], $path, null );
+
+		if ( is_null( $value ) ) {
+			return $default;
+		}
+
+		$value = wp_unslash( $value );
+
+		// Coerce it into the appropriate type.
+		if ( $schema ) {
+			$schema = is_string( $schema ) ? array( 'type' => $schema ) : $schema;
+			$caller = strtolower( ltrim( $var, '_' ) );
+			$value  = rest_sanitize_value_from_schema( $value, $schema, "WP::{$caller}()" );
+		}
+
+		return $value;
+	}
 }
