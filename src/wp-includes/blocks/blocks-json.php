@@ -285,6 +285,7 @@
 			'core/accordion-open-by-default'
 		),
 		'supports' => array(
+			'__experimentalOnEnter' => true,
 			'html' => false,
 			'color' => array(
 				'background' => true,
@@ -2233,6 +2234,7 @@
 			'postType'
 		),
 		'supports' => array(
+			'__experimentalOnEnter' => true,
 			'anchor' => true,
 			'align' => true,
 			'html' => false,
@@ -2881,7 +2883,6 @@
 		),
 		'supports' => array(
 			'__experimentalOnEnter' => true,
-			'__experimentalOnMerge' => true,
 			'__experimentalSettings' => true,
 			'align' => array(
 				'wide',
